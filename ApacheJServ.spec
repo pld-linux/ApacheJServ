@@ -72,7 +72,7 @@ mv conf/jserv.conf.in.new conf/jserv.conf.in
 # prepare compilation
 aclocal
 autoconf
-automake -a -c
+automake -a -c -f
 
 %{__make} -C classpathx_servlet-%{jsdkversion} jar_2_0
 %{__make} -C classpathx_servlet-%{jsdkversion}/apidoc
