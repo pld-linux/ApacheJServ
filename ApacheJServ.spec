@@ -42,6 +42,15 @@ from the mod_jserv Apache module (DSO included). This package contains
 a LGPL'ed implementation of sun's java servlet api version 2.0 by Paul
 Siegmann <http://www.euronet.nl/~pauls/java/servlet/>
 
+%description -l pl
+Apache JServ jest silnikiem serwletowym, rozwijanym przez Java Apache Project
+<http://java.apache.org/>. Silnik serwletowy Apache JServ zosta³ napisany
+od pocz±tku do koñca w Javie; nas³uchuje wywo³añ serwletu wykorzystuj±c
+protokó³ Apache Java (AJp). Zazwyczaj wywo³ania te pochodz± z modu³u
+Apache mod_jservmodule (³±cznie z DSO). Pakiet ten zawiera sunowsk±
+implementacjê api serletów w javie w wersji 2.0 (na licencji LGPL)
+napisana przez Paula Siegmanna <http://www.euronet.nl/~pauls/java/servlet/>
+
 %prep
 rm -rf $RPM_BUILD_ROOT
 %setup -q -a 1
