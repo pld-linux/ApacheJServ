@@ -52,7 +52,6 @@ implementacjê api serletów w javie w wersji 2.0 (na licencji LGPL)
 napisana przez Paula Siegmanna <http://www.euronet.nl/~pauls/java/servlet/>
 
 %prep
-rm -rf $RPM_BUILD_ROOT
 %setup -q -a 1
 
 %patch0
@@ -68,12 +67,12 @@ sed 's|@LOAD_OR_NOT@|#|g' \
     < conf/jserv.conf.in  > conf/jserv.conf.in.new
 mv conf/jserv.conf.in.new conf/jserv.conf.in
 
+%build
 # prepare compilation
 aclocal
 autoconf
-automake
+automake -a -c
 
-%build
 %{__make} -C classpathx_servlet-%{jsdkversion} jar_2_0
 %{__make} -C classpathx_servlet-%{jsdkversion}/apidoc
 
@@ -87,50 +86,11 @@ cp -r classpathx_servlet-%{jsdkversion}/apidoc jsdk-doc
 
 ### JSERV
 
-# find apxs utility ..
-# .. in PATH
-APXS_UTIL=`type -p apxs || true`
-
-# .. from RPM
-if test "x$APXS_UTIL" = x ; then
-  # mmh, is it possible to query just for
-  # the executeables  (like -qd and -qc) ?
-  APXSMATCH=`rpm -ql apache-devel apache | grep apxs`
-  for f in $APXSMATCH ; do
-    if test -x "$f"  ; then
-       APXS_UTIL=$f
-       break
-    fi
-  done
-fi
-
-# .. at usual places
-if test "x$APXS_UTIL" = x ; then
-   for loc in \
-    %{_bindir}               \
-    %{_sbindir}              \
-    %{_prefix}/local/apache/bin  \
-    %{_prefix}/local/apache/sbin \
-    %{_prefix}/local/httpd/bin   \
-    %{_prefix}/local/httpd/sbin 
-  do
-    if test -x "$loc/apxs" ; then
-       APXS_UTIL="$loc/apxs"
-       break
-    fi
-  done
-fi
-
-if test "x$APXS_UTIL" = x ; then
-   echo "Didn't find apxs .. exiting"
-   exit -1
-fi
-
 APXS_CFLAGS=`$APXS_UTIL -q CFLAGS`
 CFLAGS="$APXS_CFLAGS $RPM_OPT_FLAGS" ./configure \
 	--prefix=%{_prefix}          \
 	--disable-debugging           \
-	--with-apxs=$APXS_UTIL        \
+	--with-apxs=/usr/bin/apxs \
 	--with-logdir=%{logdir}       \
 	--with-servlets=%{servletdir} \
 	--with-JSDK=`pwd`/classpathx_servlet-%{jsdkversion}/servlet-2.0.jar
