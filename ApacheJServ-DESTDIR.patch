@@ -1,0 +1,28 @@
+diff -uNr ApacheJServ-1.1.orig/docs/api/Makefile.am ApacheJServ-1.1/docs/api/Makefile.am
+--- ApacheJServ-1.1.orig/docs/api/Makefile.am	Sun Nov 21 19:47:14 1999
++++ ApacheJServ-1.1/docs/api/Makefile.am	Tue Feb  8 16:53:25 2000
+@@ -32,8 +32,8 @@
+ 		echo ""; \
+ 		echo "Installing Javadoc in ${docdir}..."; \
+ 		echo ""; \
+-		${mkinstalldirs} ${docdir}; \
+-		${CP} -r ${FILES} ${docdir}; \
++		${mkinstalldirs} $(DESTDIR)${docdir}; \
++		${CP} -r ${FILES} $(DESTDIR)${docdir}; \
+ 	else \
+ 		echo "You received this message for one of two reasons:"; \
+ 		echo ""; \
+diff -uNr ApacheJServ-1.1.orig/docs/api/Makefile.in ApacheJServ-1.1/docs/api/Makefile.in
+--- ApacheJServ-1.1.orig/docs/api/Makefile.in	Tue Feb  8 16:46:09 2000
++++ ApacheJServ-1.1/docs/api/Makefile.in	Tue Feb  8 16:53:02 2000
+@@ -235,8 +235,8 @@
+ 		echo ""; \
+ 		echo "Installing Javadoc in ${docdir}..."; \
+ 		echo ""; \
+-		${mkinstalldirs} ${docdir}; \
+-		${CP} -r ${FILES} ${docdir}; \
++		${mkinstalldirs} $(DESTDIR)${docdir}; \
++		${CP} -r ${FILES} $(DESTDIR)${docdir}; \
+ 	else \
+ 		echo "You received this message for one of two reasons:"; \
+ 		echo ""; \
