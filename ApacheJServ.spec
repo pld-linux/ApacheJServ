@@ -1,15 +1,3 @@
-%define myprefix	/usr
-
-# we should determine these places with apxs..
-# it would be nice to do this at install-time
-# as well in order to dynamically 'relocate' the package.
-# .. but I think we've to wait for a new RPM to make this happen
-##
-
-## unfortuatly, we don't know the location of the apxs-binary yet .. and
-## it may not be in the path which will make the build fail (can
-## we set defines conditionally ?)
-
 #%define libexecdir `apxs -q LIBEXECDIR`
 %define libexecdir /usr/lib/apache
 
@@ -22,56 +10,43 @@
 %define classesdir /home/httpd/classes
 %define jsdkversion 19991120
 
-Source:		%{name}-%{version}.tar.gz
-Source1:	http://www.euronet.nl/~pauls/java/servlet/download/classpathx_servlet-%{jsdkversion}.tar.gz
-Patch0:		jserv-enable-secret.patch
-Patch1:		ApacheJServ-1.1-megaloman.patch
-
 Summary:	Servlet engine with support for the leading web server
 Name:		ApacheJServ
 Version:	1.1
 Release:	3
+Source0:	http://java.apache.org/jserv/dist/%{name}-%{version}.tar.gz
+Source1:	http://www.euronet.nl/~pauls/java/servlet/download/%{version}%{name}classpathx_servlet-%{jsdkversion}.tar.gz
+Patch0:		ApacheJServ-enable-secret.patch
+Patch1:		ApacheJServ-DESTDIR.patch
 URL:		http://java.apache.org/
 Copyright:	Freely distributable & usable
 Group:		Networking/Daemons
-Packager:	Henner Zeller <zeller@to.com>
-Docdir:		%{myprefix}/doc
+Group(pl):	Sieciowe/Serwery
+Docdir:		%{prefix}/doc
 Requires:	apache >= 1.3.6
 Provides:	jserv jsdk20
-BuildRoot:	/var/tmp/%{name}-%{version}-root
-Prefix:		%{myprefix}
+BuildRoot:	/tmp/%{name}-%{version}-root
 
-#BuildRequires: any-java-compiler
+#BuildRequires:	any-java-compiler
 
 BuildRequires:	automake     >= 1.4
 BuildRequires:	autoconf     >= 2.13
 BuildRequires:	libtool      >= 1.3.3 
-
-## Building this package depending on standard RPM packages
-## requires the apxs utility to be there, located in the apache-devel package.
-## Because the RH 6.1 1.3.9-4 version has a bug, we need a newer package.
-## Comment this out if you want to build this SRC-RPM on your personal
-## installation of apache (and thus, apxs).
-## (dunno, at which particular release this was fixed .. -4 was faulty and
-##  -8 works)
 BuildRequires:	apache-devel >= 1.3.9-8
 
 %description
-Apache JServ is a servlet engine, developed by the 
-Java Apache Project <http://java.apache.org/>.
-
-The Apache JServ servlet engine is written in 100pc Java application, and 
-listens for servlet requests using the Apache Java protocol (AJp). Typically, 
-these requests will originate from the mod_jserv Apache module (DSO included).
-
-This package contains a LGPL'ed implementation of sun's java servlet api 
-version 2.0 by Paul Siegmann <http://www.euronet.nl/~pauls/java/servlet/>
+Apache JServ is a servlet engine, developed by the Java Apache Project
+<http://java.apache.org/>. The Apache JServ servlet engine is written in
+100pc Java application, and listens for servlet requests using the Apache
+Java protocol (AJp). Typically, these requests will originate from the
+mod_jserv Apache module (DSO included). This package contains a LGPL'ed
+implementation of sun's java servlet api version 2.0 by Paul Siegmann
+<http://www.euronet.nl/~pauls/java/servlet/>
 
 %prep
 rm -rf $RPM_BUILD_ROOT
-%setup -a 1 -n %{name}-%{version}
+%setup -q -a 1
 
-# enable socket authentification
 %patch0
 %patch1 -p1
 
@@ -91,8 +66,6 @@ autoconf
 automake
 
 %build
-
-### jsdk API
 make -C classpathx_servlet-%{jsdkversion} jar_2_0
 make -C classpathx_servlet-%{jsdkversion}/apidoc
 
@@ -127,12 +100,12 @@ fi
 # .. at usual places
 if test "x$APXS_UTIL" = x ; then
    for loc in \
-    /usr/bin               \
-    /usr/sbin              \
-    /usr/local/apache/bin  \
-    /usr/local/apache/sbin \
-    /usr/local/httpd/bin   \
-    /usr/local/httpd/sbin 
+    %{_bindir}               \
+    %{_sbindir}              \
+    %{_prefix}/local/apache/bin  \
+    %{_prefix}/local/apache/sbin \
+    %{_prefix}/local/httpd/bin   \
+    %{_prefix}/local/httpd/sbin 
   do
     if test -x "$loc/apxs" ; then
        APXS_UTIL="$loc/apxs"
@@ -148,7 +121,7 @@ fi
 
 APXS_CFLAGS=`$APXS_UTIL -q CFLAGS`
 CFLAGS="$APXS_CFLAGS $RPM_OPT_FLAGS" ./configure \
-	--prefix=%{myprefix}          \
+	--prefix=%{_prefix}          \
 	--disable-debugging           \
 	--with-apxs=$APXS_UTIL        \
 	--with-logdir=%{logdir}       \
@@ -157,18 +130,20 @@ CFLAGS="$APXS_CFLAGS $RPM_OPT_FLAGS" ./configure \
 make
 
 %install
+rm -rf $RPM_BUILD_ROOT
+
 make DESTDIR=$RPM_BUILD_ROOT install
 
 echo "default - change on install `date`" > $RPM_BUILD_ROOT/%{jservconf}/jserv.secret.key
 chmod 600 $RPM_BUILD_ROOT/%{jservconf}/jserv.secret.key
 
 # currently disabled
-#install -d $RPM_BUILD_ROOT/etc/rc.d/init.d
-#install -d $RPM_BUILD_ROOT/etc/profile.d
-#install -d $RPM_BUILD_ROOT/etc/logrotate.d
-#install -m755 src/scripts/package/rpm/jserv.init      $RPM_BUILD_ROOT/etc/rc.d/init.d/jserv
-#install -m755 src/scripts/package/rpm/jserv.sh        $RPM_BUILD_ROOT/etc/profile.d
-#install -m644 src/scripts/package/rpm/jserv.logrotate $RPM_BUILD_ROOT/etc/logrotate.d/jserv
+#install -d $RPM_BUILD_ROOT%{_sysconfdir}/rc.d/init.d
+#install -d $RPM_BUILD_ROOT%{_sysconfdir}/profile.d
+#install -d $RPM_BUILD_ROOT%{_sysconfdir}/logrotate.d
+#install -m755 src/scripts/package/rpm/jserv.init      $RPM_BUILD_ROOT%{_sysconfdir}/rc.d/init.d/jserv
+#install -m755 src/scripts/package/rpm/jserv.sh        $RPM_BUILD_ROOT%{_sysconfdir}/profile.d
+#install -m644 src/scripts/package/rpm/jserv.logrotate $RPM_BUILD_ROOT%{_sysconfdir}/logrotate.d/jserv
 
 ### GNU JSDK-classes
 install -d ${RPM_BUILD_ROOT}%{classesdir}
@@ -181,7 +156,7 @@ rm -rf $RPM_BUILD_ROOT
 
 # use fortune + install-date + process-list to create pseudo-random, hardly
 # guessable secret key. Use md5sum to create a hash from this, if available:
-(/usr/games/fortune 2>/dev/null ; date ; ps -eal 2>/dev/null)   \
+(%{_prefix}/games/fortune 2>/dev/null ; date ; ps -eal 2>/dev/null)   \
 		    | (md5sum 2>/dev/null || cat)   		\
 		    > %{jservconf}/jserv.secret.key 
 chmod 600 %{jservconf}/jserv.secret.key
@@ -193,7 +168,7 @@ APACHEUSER=`grep "^User[	 ]\+" %{httpdconf}/httpd.conf | awk '{print $2}'`
 if test ! "x$APACHEUSER" = x ; then
    USERCOMMENT="(which is '$APACHEUSER' ?)"
 else
-   # assumption:
+   # assumption:	
    APACHEUSER=nobody
 fi
 chown $APACHEUSER %{jservconf}/jserv.secret.key
@@ -325,7 +300,7 @@ if test "$SERVERPORT" = ":80" ; then
 	SERVERPORT=""
 fi
 
-#FIXME: make this i18n-aware
+#FIXME:		make this i18n-aware
 
 if test ! "x$JAVABIN" = x ; then
    echo "using java VM $JAVABIN"
@@ -383,8 +358,8 @@ sed 's|.*\(Include.*%{jservconf}/jserv.conf\)|#\1|g' \
 /bin/rm -fr %{logdir}/jserv.log
 
 %files
-%defattr(-,root,root)
-# mmh, we can't give %{prefix}/docs to %doc ..
+%defattr(644,root,root,755)
+# mmh, we can't give %{_prefix}/docs to %doc ..
 %doc index.html README docs jsdk-doc
 
 %dir %{jservconf}
@@ -400,9 +375,9 @@ sed 's|.*\(Include.*%{jservconf}/jserv.conf\)|#\1|g' \
 #%{jservconf}/jserv.conf.default
 
 %attr(-,nobody,nobody) %{jservconf}/jserv.secret.key
-#%config /etc/rc.d/init.d/jserv
-#%config /etc/logrotate.d/jserv
-#%config /etc/profile.d/jserv.sh
+#%config %{_sysconfdir}/rc.d/init.d/jserv
+#%config %{_sysconfdir}/logrotate.d/jserv
+#%config %{_sysconfdir}/profile.d/jserv.sh
 
 %{libexecdir}/mod_jserv.so
 %{libexecdir}/ApacheJServ.jar
@@ -416,46 +391,3 @@ sed 's|.*\(Include.*%{jservconf}/jserv.conf\)|#\1|g' \
 
 # we need to have write access here
 %attr(-,nobody,-) %dir %{logdir}
-
-%changelog
-* Sun Feb 13 2000 Peter Hanecak <hanecak@megaloman.sk>
-- used 'APXS_CFLAGS=`$APXS_UTIL -q CFLAGS`' and
-  'CFLAGS="$APXS_CFLAGS $RPM_OPT_FLAGS"' to determine build flags
-  (because of EAPI)
-
-* Tue Feb  8 2000 Peter Hanecak <hanecak@megaloman.sk>
-- RPM_OPT_FLAGS passed to CFLAGS
-- build root changed from '/tmp/...' to '/var/tmp/...'
-- install process fixed for 'docs/api'
-
-* Tue Dec 28 1999 HZ <zeller@to.com>
- - use BuildRequires to reflect the need for current
-   versions of the autoconf/automake suite and a
-   recent apache-devel because of a bug in older
-   versions of this package.
-
-* Thu Sep 30 1999 HZ <zeller@to.com>
- - Release of 1.1 Beta 1
-
-* Wed Sep 29 1999 Henner Zeller <zeller@to.com>
- - new build scheme (1.1)
-
-* Sun Sep 19 1999 Henner Zeller <zeller@to.com>
- - make it work with the apache-1.3.9 RPM
- - use 'test' instead of '[ ]' in conditionals
- - look for java virtual machine and edit jserv.properties' wrapper.bin
-
-* Fri Sep 17 1999 Henner Zeller <zeller@to.com>
- - added LGPL'ed servlet DK by Paul Siegmann
-
-* Wed Aug 18 1999 Henner Zeller <zeller@to.com>
- - edit httpd.conf automatically
-
-* Sat Jul 24 1999 Henner Zeller <zeller@to.com>
- - update to install JServ 1.0.*
-
-* Thu Nov 05 1998 Ross Golder <rossigee@bigfoot.com>
-- updated to use the autoconf build system
-
-* Mon Oct 19 1998 Ross Golder <rossg@cpd.co.uk>
-- created from previous work to deploy daily snapshot RPMs
