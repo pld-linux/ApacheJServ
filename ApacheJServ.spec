@@ -7,7 +7,9 @@ Name:		ApacheJServ
 Version:	1.1.2
 Release:	1
 Source0:	http://java.apache.org/jserv/dist/%{name}-%{version}.tar.gz
+# Source0-md5:	6d48a1b9fcc5eea4dfebaae29ba5a485
 Source1:	http://www.euronet.nl/~pauls/java/servlet/download/classpathx_servlet-%{jsdkversion}.tar.gz
+# Source1-md5:	a81feddb91b1358f9aaed94e83eddb54
 Patch0:		%{name}-enable-secret.patch
 URL:		http://java.apache.org/
 License:	freely distributable & usable (JServ), LGPL (JSDK)
