@@ -256,7 +256,7 @@ fi
 # Get Server Port to echo right URL below
 #
 SERVERPORT=`grep "^Port" %{httpdconf}/httpd.conf | \
-			head -1 | awk '{print ":" $2}'`
+			head -n 1 | awk '{print ":" $2}'`
 if test "$SERVERPORT" = ":80" ; then
 	SERVERPORT=""
 fi
