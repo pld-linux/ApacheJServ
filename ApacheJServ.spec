@@ -330,9 +330,9 @@ sed 's|.*\(Include.*%{jservconf}/jserv.conf\)|#\1|g' \
 # these are just for demonstration and thus,
 # no %config-files per-se; do not install
 # them for the RPM-packet
-#%{jservconf}/jserv.properties.default
-#%{jservconf}/zone.properties.default
-#%{jservconf}/jserv.conf.default
+#%%{jservconf}/jserv.properties.default
+#%%{jservconf}/zone.properties.default
+#%%{jservconf}/jserv.conf.default
 
 %attr(600,http,http) %{jservconf}/jserv.secret.key
 #%config /etc/rc.d/init.d/jserv
