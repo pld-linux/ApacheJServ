@@ -6,8 +6,8 @@
 
 %define jservconf  %{httpdconf}/jserv
 %define logdir	   /var/log/httpd
-%define servletdir /home/httpd/servlets
-%define classesdir /home/httpd/classes
+%define servletdir /home/services/httpd/servlets
+%define classesdir /home/services/httpd/classes
 %define jsdkversion 20000924
 
 Summary:	Servlet engine with support for the leading web server
