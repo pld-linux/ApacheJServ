@@ -108,11 +108,11 @@ chmod 600 $RPM_BUILD_ROOT/%{jservconf}/jserv.secret.key
 
 # currently disabled
 #install -d $RPM_BUILD_ROOT/etc/rc.d/init.d
-#install -d $RPM_BUILD_ROOT%{_sysconfdir}/profile.d
-#install -d $RPM_BUILD_ROOT%{_sysconfdir}/logrotate.d
+#install -d $RPM_BUILD_ROOT/etc/profile.d
+#install -d $RPM_BUILD_ROOT/etc/logrotate.d
 #install -m755 src/scripts/package/rpm/jserv.init      $RPM_BUILD_ROOT/etc/rc.d/init.d/jserv
-#install -m755 src/scripts/package/rpm/jserv.sh        $RPM_BUILD_ROOT%{_sysconfdir}/profile.d
-#install -m644 src/scripts/package/rpm/jserv.logrotate $RPM_BUILD_ROOT%{_sysconfdir}/logrotate.d/jserv
+#install -m755 src/scripts/package/rpm/jserv.sh        $RPM_BUILD_ROOT/etc/profile.d
+#install -m644 src/scripts/package/rpm/jserv.logrotate $RPM_BUILD_ROOT/etc/logrotate.d/jserv
 
 ### GNU JSDK-classes
 install -d ${RPM_BUILD_ROOT}%{classesdir}
@@ -344,8 +344,8 @@ sed 's|.*\(Include.*%{jservconf}/jserv.conf\)|#\1|g' \
 
 %attr(-,nobody,nobody) %{jservconf}/jserv.secret.key
 #%config /etc/rc.d/init.d/jserv
-#%config %{_sysconfdir}/logrotate.d/jserv
-#%config %{_sysconfdir}/profile.d/jserv.sh
+#%config /etc/logrotate.d/jserv
+#%config /etc/profile.d/jserv.sh
 
 %{libexecdir}/mod_jserv.so
 %{libexecdir}/ApacheJServ.jar
