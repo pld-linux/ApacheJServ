@@ -59,11 +59,11 @@ ten zawiera sunowsk± implementacjê api serletów w javie w wersji 2.0
 
 # final position of GNU JSDK-Classes
 sed 's|@JSDK_CLASSES@|%{classesdir}/servlet-2.0.jar|g' \
-	conf/jserv.properties.in  > conf/jserv.properties.in.new
+	conf/jserv.properties.in > conf/jserv.properties.in.new
 mv -f conf/jserv.properties.in.new conf/jserv.properties.in
 
 # do not load module in provided jserv.conf; we do this in httpd.conf
-sed 's|@LOAD_OR_NOT@|#|g' conf/jserv.conf.in  \
+sed 's|@LOAD_OR_NOT@|#|g' conf/jserv.conf.in \
 	> conf/jserv.conf.in.new
 mv -f conf/jserv.conf.in.new conf/jserv.conf.in
 
@@ -158,17 +158,17 @@ umask 027
 cp -f %{httpdconf}/httpd.conf %{httpdconf}/httpd.conf.rpmorig
 grep -q '#\?.*[iI]nclude.*/jserv.conf' %{httpdconf}/httpd.conf
 if test $? -eq 0 ; then
-    # found. Insert our include statement here
-    ## this depends on GNU-sed ('|')
-    sed 's|^#\?\(.*Include\).*/jserv.conf.*$|\1 %{jservconf}/jserv.conf|g' \
-	%{httpdconf}/httpd.conf.rpmorig > %{httpdconf}/httpd.conf
+	# found. Insert our include statement here
+	## this depends on GNU-sed ('|')
+	sed 's|^#\?\(.*Include\).*/jserv.conf.*$|\1 %{jservconf}/jserv.conf|g' \
+		%{httpdconf}/httpd.conf.rpmorig > %{httpdconf}/httpd.conf
 else
-    # append it
-    (
-	echo "<IfModule mod_jserv.c>"
-	echo "	     Include %{jservconf}/jserv.conf"
-	echo "</IfModule>"
-    ) >> %{httpdconf}/httpd.conf
+	# append it
+	(
+		echo "<IfModule mod_jserv.c>"
+		echo "		Include %{jservconf}/jserv.conf"
+		echo "</IfModule>"
+	) >> %{httpdconf}/httpd.conf
 fi
 
 #
@@ -176,38 +176,38 @@ fi
 #
 grep -q '#\?.*LoadModule.*jserv_module.*mod_jserv.so' %{httpdconf}/httpd.conf
 if test $? -eq 0 ; then
-    # found. Remove any comment
-    sed 's|^#.*\(LoadModule.*mod_jserv.so\)|\1|g' \
-	%{httpdconf}/httpd.conf > %{httpdconf}/httpd.conf.loadMod
-    mv -f %{httpdconf}/httpd.conf.loadMod %{httpdconf}/httpd.conf
+	# found. Remove any comment
+	sed 's|^#.*\(LoadModule.*mod_jserv.so\)|\1|g' \
+		%{httpdconf}/httpd.conf > %{httpdconf}/httpd.conf.loadMod
+	mv -f %{httpdconf}/httpd.conf.loadMod %{httpdconf}/httpd.conf
 else
-    # Insert LoadModule line before first valid LoadModule
-    (
-	echo "/^LoadModule"
-	echo "i"
-	echo "LoadModule jserv_module	modules/mod_jserv.so"
-	echo "."
-	echo "wq"
-    ) | ed %{httpdconf}/httpd.conf > /dev/null 2>&1
+	# Insert LoadModule line before first valid LoadModule
+	(
+		echo "/^LoadModule"
+		echo "i"
+		echo "LoadModule jserv_module	modules/mod_jserv.so"
+		echo "."
+		echo "wq"
+	) | ed %{httpdconf}/httpd.conf > /dev/null 2>&1
 fi
 
 #
 # AddModule; uncomment or insert
 #
 grep -q '#\?.*AddModule.*mod_jserv.c' %{httpdconf}/httpd.conf
-if test $? -eq 0  ; then
-    # found. Remove any comment
-    sed 's|^#.*\(AddModule.*mod_jserv.c\)|\1|g' \
-	%{httpdconf}/httpd.conf > %{httpdconf}/httpd.conf.addMod
-    mv -f %{httpdconf}/httpd.conf.addMod %{httpdconf}/httpd.conf
+if test $? -eq 0 ; then
+	# found. Remove any comment
+	sed 's|^#.*\(AddModule.*mod_jserv.c\)|\1|g' \
+		%{httpdconf}/httpd.conf > %{httpdconf}/httpd.conf.addMod
+	mv -f %{httpdconf}/httpd.conf.addMod %{httpdconf}/httpd.conf
 else
-    (
-	echo "/^AddModule"
-	echo "i"
-	echo "AddModule mod_jserv.c"
-	echo "."
-	echo "wq"
-    ) | ed %{httpdconf}/httpd.conf > /dev/null 2>&1
+	(
+		echo "/^AddModule"
+		echo "i"
+		echo "AddModule mod_jserv.c"
+		echo "."
+		echo "wq"
+	) | ed %{httpdconf}/httpd.conf > /dev/null 2>&1
 fi
 
 #
@@ -215,41 +215,41 @@ fi
 #
 unset JAVABIN
 for lookfor in java jre ; do
-    for loc in \
-	$JAVA_HOME \
-	$JDK_HOME \
-	/usr/lib/java \
-	/usr/local/java* \
-	/usr/local/jdk*
-    do
-	if test -x "$loc/bin/$lookfor" ; then
-	    JAVABIN="$loc/bin/$lookfor"
-	    break
-	fi
-    done
-
-    if test -z "$JAVABIN" ; then
-	for prefix in /usr/jdk /usr/jdk- /usr/local/jdk /usr/local/jdk- ; do
-	    for jplatform in 2 1 ; do
-		for subvers in .9 .8 .7 .6 .5 .4 .3 .2 .1 "" ; do
-		    if test -x "${prefix}1.$jplatform$subvers/bin/$lookfor" ; then
-			JAVABIN="${prefix}1.$jplatform$subvers/bin/$lookfor"
+	for loc in \
+		$JAVA_HOME \
+		$JDK_HOME \
+		/usr/lib/java \
+		/usr/local/java* \
+		/usr/local/jdk*
+	do
+		if test -x "$loc/bin/$lookfor" ; then
+			JAVABIN="$loc/bin/$lookfor"
 			break
-		    fi
-		done
-		if test ! -z "$JAVABIN" ; then break ; fi
-	    done
-	    if test ! -z "$JAVABIN" ; then break ; fi
+		fi
 	done
-    fi
-    if test ! -z "$JAVABIN" ; then break ; fi
+
+	if test -z "$JAVABIN" ; then
+		for prefix in /usr/jdk /usr/jdk- /usr/local/jdk /usr/local/jdk- ; do
+			for jplatform in 2 1 ; do
+				for subvers in .9 .8 .7 .6 .5 .4 .3 .2 .1 "" ; do
+					if test -x "${prefix}1.$jplatform$subvers/bin/$lookfor" ; then
+						JAVABIN="${prefix}1.$jplatform$subvers/bin/$lookfor"
+						break
+					fi
+				done
+				if test ! -z "$JAVABIN" ; then break ; fi
+			done
+			if test ! -z "$JAVABIN" ; then break ; fi
+		done
+	fi
+	if test ! -z "$JAVABIN" ; then break ; fi
 done
 
 umask 022
 if test ! -z "$JAVABIN" ; then
-    sed "s|^wrapper.bin=.*$|wrapper.bin=$JAVABIN|" \
-	%{jservconf}/jserv.properties > %{jservconf}/jserv.properties.new
-    mv -f %{jservconf}/jserv.properties.new %{jservconf}/jserv.properties
+	sed "s|^wrapper.bin=.*$|wrapper.bin=$JAVABIN|" \
+		%{jservconf}/jserv.properties > %{jservconf}/jserv.properties.new
+	mv -f %{jservconf}/jserv.properties.new %{jservconf}/jserv.properties
 fi
 
 #
@@ -264,10 +264,10 @@ fi
 #FIXME:		make this i18n-aware
 
 if test ! "x$JAVABIN" = x ; then
-    echo "using java VM $JAVABIN"
+	echo "using java VM $JAVABIN"
 else
-    echo "## didn't find java or jre. Please install it and edit the"
-    echo "## wrapper.bin property in %{jservconf}/jserv.properties"
+	echo "## didn't find java or jre. Please install it and edit the"
+	echo "## wrapper.bin property in %{jservconf}/jserv.properties"
 fi
 echo ""
 echo "In order to enable JServ, restart the webserver and try"
@@ -296,7 +296,7 @@ echo "this RPM to <zeller@to.com>."
 # do not remove the configured stuff if we upgrade.
 # the $1 argument contains the number of packages _after_ installation.
 if [ "$1" != "0" ] ; then
-    exit 0
+	exit 0
 fi
 
 # Remove 'jserv' service (manual mode)
@@ -310,10 +310,10 @@ fi
 umask 027
 cp -f %{httpdconf}/httpd.conf %{httpdconf}/httpd.conf.rpmorig
 sed 's|.*\(Include.*%{jservconf}/jserv.conf\)|#\1|g' \
-    %{httpdconf}/httpd.conf.rpmorig \
-    | sed 's|^\(AddModule.*mod_jserv.c\)|#\1|g' \
-    | sed 's|^\(LoadModule.*mod_jserv.so\)|#\1|g' \
-    > %{httpdconf}/httpd.conf
+	%{httpdconf}/httpd.conf.rpmorig \
+	| sed 's|^\(AddModule.*mod_jserv.c\)|#\1|g' \
+	| sed 's|^\(LoadModule.*mod_jserv.so\)|#\1|g' \
+	> %{httpdconf}/httpd.conf
 # remove old logs
 /bin/rm -fr %{logdir}/mod_jserv.log
 /bin/rm -fr %{logdir}/jserv.log
