@@ -134,7 +134,7 @@ CFLAGS="$APXS_CFLAGS $RPM_OPT_FLAGS" ./configure \
 	--with-logdir=%{logdir}       \
 	--with-servlets=%{servletdir} \
 	--with-JSDK=`pwd`/classpathx_servlet-%{jsdkversion}/servlet-2.0.jar
-make
+%{__make}
 
 %install
 rm -rf $RPM_BUILD_ROOT
