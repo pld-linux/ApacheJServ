@@ -1,14 +1,5 @@
-#%define libexecdir `apxs -q LIBEXECDIR`
-%define libexecdir /usr/lib/apache
-
-#%define httpdconf `apxs -q SYSCONFDIR`
-%define httpdconf  /etc/httpd/conf
-
-%define jservconf  %{httpdconf}/jserv
-%define logdir	   /var/log/httpd
-%define servletdir /home/services/httpd/servlets
-%define classesdir /home/services/httpd/classes
-%define jsdkversion 20000924
+%define		jsdkversion	20000924
+%define		apxs		/usr/sbin/apxs
 
 Summary:	Servlet engine with support for the leading web server
 Summary(pl):	Silnik serwletów ze wsparciem dla wiod±cego serwera WWW
@@ -22,16 +13,28 @@ Patch1:		%{name}-DESTDIR.patch
 URL:		http://java.apache.org/
 License:	freely distributable & usable
 Group:		Networking/Daemons
+BuildRequires:	apache-devel >= 1.3.9-8
+BuildRequires:	autoconf >= 2.13
+BuildRequires:	automake >= 1.4
+BuildRequires:	libtool >= 1.3.3
+BuildRequires:	jdk
+Requires(post):	awk
+Requires(post):	ed
+Requires(post,preun):	fileutils
+Requires(post):	grep
+Requires(post,preun):	sed
+Requires(post):	sh-utils
+Requires(post):	textutils
 Requires:	apache >= 1.3.6
 Provides:	jserv jsdk20
 BuildRoot:	%{tmpdir}/%{name}-%{version}-root-%(id -u -n)
 
-#BuildRequires:	any-java-compiler
-
-BuildRequires:	automake     >= 1.4
-BuildRequires:	autoconf     >= 2.13
-BuildRequires:	libtool      >= 1.3.3
-BuildRequires:	apache-devel >= 1.3.9-8
+%define		libexecdir	%(%{apxs} -q LIBEXECDIR)
+%define		httpdconf	%(%{apxs} -q SYSCONFDIR)
+%define		jservconf	%{httpdconf}/jserv
+%define		logdir		/var/log/httpd
+%define		servletdir	/home/services/httpd/servlets
+%define		classesdir	/home/services/httpd/classes
 
 %description
 Apache JServ is a servlet engine, developed by the Java Apache Project
@@ -53,20 +56,19 @@ ten zawiera sunowsk± implementacjê api serletów w javie w wersji 2.0
 <http://www.euronet.nl/~pauls/java/servlet/>
 
 %prep
-%setup -q -a 1
-
+%setup -q -a1
 %patch0
 %patch1 -p1
 
 # final position of GNU JSDK-Classes
 sed 's|@JSDK_CLASSES@|%{classesdir}/servlet-2.0.jar|g' \
-    < conf/jserv.properties.in  > conf/jserv.properties.in.new
-mv conf/jserv.properties.in.new conf/jserv.properties.in
+	conf/jserv.properties.in  > conf/jserv.properties.in.new
+mv -f conf/jserv.properties.in.new conf/jserv.properties.in
 
 # do not load module in provided jserv.conf; we do this in httpd.conf
-sed 's|@LOAD_OR_NOT@|#|g' \
-    < conf/jserv.conf.in  > conf/jserv.conf.in.new
-mv conf/jserv.conf.in.new conf/jserv.conf.in
+sed 's|@LOAD_OR_NOT@|#|g' conf/jserv.conf.in  \
+	> conf/jserv.conf.in.new
+mv -f conf/jserv.conf.in.new conf/jserv.conf.in
 
 %build
 # prepare compilation
@@ -88,11 +90,11 @@ cp -r classpathx_servlet-%{jsdkversion}/apidoc jsdk-doc
 
 ### JSERV
 
-APXS_CFLAGS=`$APXS_UTIL -q CFLAGS`
+APXS_CFLAGS=`%{apxs} -q CFLAGS`
 CFLAGS="$APXS_CFLAGS %{rpmcflags}" ./configure \
 	--prefix=%{_prefix} \
 	--disable-debugging \
-	--with-apxs=/usr/sbin/apxs \
+	--with-apxs=%{apxs} \
 	--with-logdir=%{logdir} \
 	--with-servlets=%{servletdir} \
 	--with-JSDK=`pwd`/classpathx_servlet-%{jsdkversion}/servlet-2.0.jar
@@ -103,8 +105,8 @@ rm -rf $RPM_BUILD_ROOT
 
 %{__make} DESTDIR=$RPM_BUILD_ROOT install
 
-echo "default - change on install `date`" > $RPM_BUILD_ROOT/%{jservconf}/jserv.secret.key
-chmod 600 $RPM_BUILD_ROOT/%{jservconf}/jserv.secret.key
+echo "default - change on install `date`" > $RPM_BUILD_ROOT%{jservconf}/jserv.secret.key
+chmod 600 $RPM_BUILD_ROOT%{jservconf}/jserv.secret.key
 
 # currently disabled
 #install -d $RPM_BUILD_ROOT/etc/rc.d/init.d
@@ -115,19 +117,17 @@ chmod 600 $RPM_BUILD_ROOT/%{jservconf}/jserv.secret.key
 #install -m644 src/scripts/package/rpm/jserv.logrotate $RPM_BUILD_ROOT/etc/logrotate.d/jserv
 
 ### GNU JSDK-classes
-install -d ${RPM_BUILD_ROOT}%{classesdir}
-install classpathx_servlet-%{jsdkversion}/servlet-2.0.jar ${RPM_BUILD_ROOT}%{classesdir}
+install -d $RPM_BUILD_ROOT%{classesdir}
+install classpathx_servlet-%{jsdkversion}/servlet-2.0.jar $RPM_BUILD_ROOT%{classesdir}
 
 %clean
 rm -rf $RPM_BUILD_ROOT
 
 %post
-
 # use fortune + install-date + process-list to create pseudo-random, hardly
 # guessable secret key. Use md5sum to create a hash from this, if available:
-(%{_prefix}/games/fortune 2>/dev/null ; date ; ps -eal 2>/dev/null)   \
-		    | (md5sum 2>/dev/null || cat)   		\
-		    > %{jservconf}/jserv.secret.key
+(fortune 2>/dev/null ; date ; ps -eal 2>/dev/null) \
+	| (md5sum 2>/dev/null || cat) > %{jservconf}/jserv.secret.key
 chmod 600 %{jservconf}/jserv.secret.key
 
 #
@@ -135,10 +135,10 @@ chmod 600 %{jservconf}/jserv.secret.key
 #
 APACHEUSER=`grep "^User[	 ]\+" %{httpdconf}/httpd.conf | awk '{print $2}'`
 if test ! "x$APACHEUSER" = x ; then
-   USERCOMMENT="(which is '$APACHEUSER' ?)"
+	USERCOMMENT="(which is '$APACHEUSER' ?)"
 else
-   # assumption:
-   APACHEUSER=nobody
+# assumption:
+	APACHEUSER=http
 fi
 chown $APACHEUSER %{jservconf}/jserv.secret.key
 
@@ -146,7 +146,7 @@ chown $APACHEUSER %{jservconf}/jserv.secret.key
 # determine apache-GROUP and allow this group to write to %{logdir}
 APACHEGROUP=`grep "^Group[	 ]\+" %{httpdconf}/httpd.conf | awk '{print $2}'`
 if test "x$APACHEGROUP" = x ; then
-   APACHEGROUP=nobody
+	APACHEGROUP=http
 fi
 chgrp $APACHEGROUP %{logdir}
 chmod g+w %{logdir}
@@ -159,105 +159,102 @@ chmod g+w %{logdir}
 #
 # Find Include Statement or add it if necessary
 #
-cp %{httpdconf}/httpd.conf %{httpdconf}/httpd.conf.rpmorig
-grep '#\?.*[iI]nclude.*/jserv.conf' %{httpdconf}/httpd.conf \
-     >/dev/null
+umask 027
+cp -f %{httpdconf}/httpd.conf %{httpdconf}/httpd.conf.rpmorig
+grep -q '#\?.*[iI]nclude.*/jserv.conf' %{httpdconf}/httpd.conf
 if test $? -eq 0 ; then
-   # found. Insert our include statement here
-   ## this depends on GNU-sed ('|') .. but we're on a RedHat system anyway
-   sed 's|^#\?\(.*Include\).*/jserv.conf.*$|\1 %{jservconf}/jserv.conf|g' \
-       < %{httpdconf}/httpd.conf.rpmorig                 \
-       > %{httpdconf}/httpd.conf
+    # found. Insert our include statement here
+    ## this depends on GNU-sed ('|')
+    sed 's|^#\?\(.*Include\).*/jserv.conf.*$|\1 %{jservconf}/jserv.conf|g' \
+	%{httpdconf}/httpd.conf.rpmorig > %{httpdconf}/httpd.conf
 else
-   # append it
-   (
-     echo "<IfModule mod_jserv.c>"
-     echo "	     Include %{jservconf}/jserv.conf"
-     echo "</IfModule>"
-   ) >> %{httpdconf}/httpd.conf
+    # append it
+    (
+	echo "<IfModule mod_jserv.c>"
+	echo "	     Include %{jservconf}/jserv.conf"
+	echo "</IfModule>"
+    ) >> %{httpdconf}/httpd.conf
 fi
 
 #
 # LoadModule; uncomment or insert
 #
-grep '#\?.*LoadModule.*jserv_module.*mod_jserv.so' %{httpdconf}/httpd.conf \
-     >/dev/null
+grep -q '#\?.*LoadModule.*jserv_module.*mod_jserv.so' %{httpdconf}/httpd.conf
 if test $? -eq 0 ; then
-   # found. Remove any comment
-   sed 's|^#.*\(LoadModule.*mod_jserv.so\)|\1|g' \
-       < %{httpdconf}/httpd.conf                 \
-       > %{httpdconf}/httpd.conf.loadMod
-   mv %{httpdconf}/httpd.conf.loadMod %{httpdconf}/httpd.conf
+    # found. Remove any comment
+    sed 's|^#.*\(LoadModule.*mod_jserv.so\)|\1|g' \
+	%{httpdconf}/httpd.conf > %{httpdconf}/httpd.conf.loadMod
+    mv -f %{httpdconf}/httpd.conf.loadMod %{httpdconf}/httpd.conf
 else
-   # Insert LoadModule line before first valid LoadModule
-   ( echo "/^LoadModule"
-     echo "i"
-     echo "LoadModule jserv_module	modules/mod_jserv.so"
-     echo "."
-     echo "wq"
-   ) | ed %{httpdconf}/httpd.conf > /dev/null 2>&1
+    # Insert LoadModule line before first valid LoadModule
+    (
+	echo "/^LoadModule"
+	echo "i"
+	echo "LoadModule jserv_module	modules/mod_jserv.so"
+	echo "."
+	echo "wq"
+    ) | ed %{httpdconf}/httpd.conf > /dev/null 2>&1
 fi
 
 #
 # AddModule; uncomment or insert
 #
-grep '#\?.*AddModule.*mod_jserv.c' %{httpdconf}/httpd.conf >/dev/null
+grep -q '#\?.*AddModule.*mod_jserv.c' %{httpdconf}/httpd.conf
 if test $? -eq 0  ; then
-   # found. Remove any comment
-   sed 's|^#.*\(AddModule.*mod_jserv.c\)|\1|g' \
-       < %{httpdconf}/httpd.conf               \
-       > %{httpdconf}/httpd.conf.addMod
-   mv %{httpdconf}/httpd.conf.addMod %{httpdconf}/httpd.conf
+    # found. Remove any comment
+    sed 's|^#.*\(AddModule.*mod_jserv.c\)|\1|g' \
+	%{httpdconf}/httpd.conf > %{httpdconf}/httpd.conf.addMod
+    mv -f %{httpdconf}/httpd.conf.addMod %{httpdconf}/httpd.conf
 else
-   ( echo "/^AddModule"
-     echo "i"
-     echo "AddModule mod_jserv.c"
-     echo "."
-     echo "wq"
-   ) | ed %{httpdconf}/httpd.conf > /dev/null 2>&1
+    (
+	echo "/^AddModule"
+	echo "i"
+	echo "AddModule mod_jserv.c"
+	echo "."
+	echo "wq"
+    ) | ed %{httpdconf}/httpd.conf > /dev/null 2>&1
 fi
 
 #
-# Search vor JAVA at possible locations and edit wrapper.bin
+# Search for JAVA at possible locations and edit wrapper.bin
 #
 unset JAVABIN
 for lookfor in java jre ; do
-  for loc in \
-    $JAVA_HOME	          \
-    $JDK_HOME	          \
-    /usr/local/java       \
-    /usr/local/jdk       \
-    /usr/local/jdk117_v3  \
-    /usr/local/jdk117_v1a
-  do
-    if test -x "$loc/bin/$lookfor" ; then
-       JAVABIN="$loc/bin/$lookfor"
-       break
-    fi
-  done
-
-  if test -z "$JAVABIN" ; then
-    for prefix in /usr/jdk /usr/jdk- /usr/local/jdk /usr/local/jdk- ; do
-      for jplatform in 2 1 ; do
-        for subvers in .9 .8 .7 .6 .5 .4 .3 .2 .1 "" ; do
-          if test -x "${prefix}1.$jplatform$subvers/bin/$lookfor" ; then
-	     JAVABIN="${prefix}1.$jplatform$subvers/bin/$lookfor"
-	     break
-	  fi
-        done
-	if test ! -z "$JAVABIN" ; then break ; fi
-      done
-      if test ! -z "$JAVABIN" ; then break ; fi
+    for loc in \
+	$JAVA_HOME \
+	$JDK_HOME \
+	/usr/lib/java \
+	/usr/local/java* \
+	/usr/local/jdk*
+    do
+	if test -x "$loc/bin/$lookfor" ; then
+	    JAVABIN="$loc/bin/$lookfor"
+	    break
+	fi
     done
-  fi
-  if test ! -z "$JAVABIN" ; then break ; fi
+
+    if test -z "$JAVABIN" ; then
+	for prefix in /usr/jdk /usr/jdk- /usr/local/jdk /usr/local/jdk- ; do
+	    for jplatform in 2 1 ; do
+		for subvers in .9 .8 .7 .6 .5 .4 .3 .2 .1 "" ; do
+		    if test -x "${prefix}1.$jplatform$subvers/bin/$lookfor" ; then
+			JAVABIN="${prefix}1.$jplatform$subvers/bin/$lookfor"
+			break
+		    fi
+		done
+		if test ! -z "$JAVABIN" ; then break ; fi
+	    done
+	    if test ! -z "$JAVABIN" ; then break ; fi
+	done
+    fi
+    if test ! -z "$JAVABIN" ; then break ; fi
 done
 
+umask 022
 if test ! -z "$JAVABIN" ; then
-   sed "s|^wrapper.bin=.*$|wrapper.bin=$JAVABIN|" \
-       < %{jservconf}/jserv.properties \
-       > %{jservconf}/jserv.properties.new
-   mv %{jservconf}/jserv.properties.new %{jservconf}/jserv.properties
+    sed "s|^wrapper.bin=.*$|wrapper.bin=$JAVABIN|" \
+	%{jservconf}/jserv.properties > %{jservconf}/jserv.properties.new
+    mv -f %{jservconf}/jserv.properties.new %{jservconf}/jserv.properties
 fi
 
 #
@@ -272,10 +269,10 @@ fi
 #FIXME:		make this i18n-aware
 
 if test ! "x$JAVABIN" = x ; then
-   echo "using java VM $JAVABIN"
+    echo "using java VM $JAVABIN"
 else
-   echo "## didn't find java or jre. Please install it and edit the"
-   echo "## wrapper.bin property in %{jservconf}/jserv.properties"
+    echo "## didn't find java or jre. Please install it and edit the"
+    echo "## wrapper.bin property in %{jservconf}/jserv.properties"
 fi
 echo ""
 echo "In order to enable JServ, restart the webserver and try"
@@ -303,8 +300,8 @@ echo "this RPM to <zeller@to.com>."
 %preun
 # do not remove the configured stuff if we upgrade.
 # the $1 argument contains the number of packages _after_ installation.
-if [ ! $1 -eq 0 ] ; then
-   exit 0
+if [ "$1" != "0" ] ; then
+    exit 0
 fi
 
 # Remove 'jserv' service (manual mode)
@@ -315,11 +312,12 @@ fi
 # Find jserv related configuration settings and comment
 # them out
 #
-cp %{httpdconf}/httpd.conf %{httpdconf}/httpd.conf.rpmorig
+umask 027
+cp -f %{httpdconf}/httpd.conf %{httpdconf}/httpd.conf.rpmorig
 sed 's|.*\(Include.*%{jservconf}/jserv.conf\)|#\1|g' \
-    < %{httpdconf}/httpd.conf.rpmorig                \
-    | sed 's|^\(AddModule.*mod_jserv.c\)|#\1|g'      \
-    | sed 's|^\(LoadModule.*mod_jserv.so\)|#\1|g'    \
+    %{httpdconf}/httpd.conf.rpmorig \
+    | sed 's|^\(AddModule.*mod_jserv.c\)|#\1|g' \
+    | sed 's|^\(LoadModule.*mod_jserv.so\)|#\1|g' \
     > %{httpdconf}/httpd.conf
 # remove old logs
 /bin/rm -fr %{logdir}/mod_jserv.log
