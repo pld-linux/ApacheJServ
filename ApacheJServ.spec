@@ -337,7 +337,7 @@ sed 's|.*\(Include.*%{jservconf}/jserv.conf\)|#\1|g' \
 
 %attr(600,http,http) %{jservconf}/jserv.secret.key
 #%config /etc/rc.d/init.d/jserv
-#%config /etc/logrotate.d/jserv
+#%attr(640,root,root) %config(noreplace) %verify(not size mtime md5) /etc/logrotate.d/jserv
 #%config /etc/profile.d/jserv.sh
 
 %attr(755,root,root) %{libexecdir}/mod_jserv.so
