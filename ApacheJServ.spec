@@ -22,7 +22,6 @@ URL:		http://java.apache.org/
 Copyright:	Freely distributable & usable
 Group:		Networking/Daemons
 Group(pl):	Sieciowe/Serwery
-Docdir:		%{prefix}/doc
 Requires:	apache >= 1.3.6
 Provides:	jserv jsdk20
 BuildRoot:	%{tmpdir}/%{name}-%{version}-root-%(id -u -n)
@@ -36,12 +35,12 @@ BuildRequires:	apache-devel >= 1.3.9-8
 
 %description
 Apache JServ is a servlet engine, developed by the Java Apache Project
-<http://java.apache.org/>. The Apache JServ servlet engine is written in
-100pc Java application, and listens for servlet requests using the Apache
-Java protocol (AJp). Typically, these requests will originate from the
-mod_jserv Apache module (DSO included). This package contains a LGPL'ed
-implementation of sun's java servlet api version 2.0 by Paul Siegmann
-<http://www.euronet.nl/~pauls/java/servlet/>
+<http://java.apache.org/>. The Apache JServ servlet engine is written
+in 100pc Java application, and listens for servlet requests using the
+Apache Java protocol (AJp). Typically, these requests will originate
+from the mod_jserv Apache module (DSO included). This package contains
+a LGPL'ed implementation of sun's java servlet api version 2.0 by Paul
+Siegmann <http://www.euronet.nl/~pauls/java/servlet/>
 
 %prep
 rm -rf $RPM_BUILD_ROOT
