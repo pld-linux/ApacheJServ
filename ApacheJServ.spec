@@ -30,7 +30,7 @@ BuildRoot:	%{tmpdir}/%{name}-%{version}-root-%(id -u -n)
 
 BuildRequires:	automake     >= 1.4
 BuildRequires:	autoconf     >= 2.13
-BuildRequires:	libtool      >= 1.3.3 
+BuildRequires:	libtool      >= 1.3.3
 BuildRequires:	apache-devel >= 1.3.9-8
 
 %description
@@ -58,7 +58,7 @@ ten zawiera sunowsk± implementacjê api serletów w javie w wersji 2.0
 %patch0
 %patch1 -p1
 
-# final position of GNU JSDK-Classes 
+# final position of GNU JSDK-Classes
 sed 's|@JSDK_CLASSES@|%{classesdir}/servlet-2.0.jar|g' \
     < conf/jserv.properties.in  > conf/jserv.properties.in.new
 mv conf/jserv.properties.in.new conf/jserv.properties.in
@@ -89,10 +89,10 @@ cp -r classpathx_servlet-%{jsdkversion}/apidoc jsdk-doc
 
 APXS_CFLAGS=`$APXS_UTIL -q CFLAGS`
 CFLAGS="$APXS_CFLAGS %{rpmcflags}" ./configure \
-	--prefix=%{_prefix}          \
-	--disable-debugging           \
+	--prefix=%{_prefix} \
+	--disable-debugging \
 	--with-apxs=/usr/sbin/apxs \
-	--with-logdir=%{logdir}       \
+	--with-logdir=%{logdir} \
 	--with-servlets=%{servletdir} \
 	--with-JSDK=`pwd`/classpathx_servlet-%{jsdkversion}/servlet-2.0.jar
 %{__make}
@@ -126,7 +126,7 @@ rm -rf $RPM_BUILD_ROOT
 # guessable secret key. Use md5sum to create a hash from this, if available:
 (%{_prefix}/games/fortune 2>/dev/null ; date ; ps -eal 2>/dev/null)   \
 		    | (md5sum 2>/dev/null || cat)   		\
-		    > %{jservconf}/jserv.secret.key 
+		    > %{jservconf}/jserv.secret.key
 chmod 600 %{jservconf}/jserv.secret.key
 
 #
@@ -136,7 +136,7 @@ APACHEUSER=`grep "^User[	 ]\+" %{httpdconf}/httpd.conf | awk '{print $2}'`
 if test ! "x$APACHEUSER" = x ; then
    USERCOMMENT="(which is '$APACHEUSER' ?)"
 else
-   # assumption:	
+   # assumption:
    APACHEUSER=nobody
 fi
 chown $APACHEUSER %{jservconf}/jserv.secret.key
@@ -169,7 +169,7 @@ if test $? -eq 0 ; then
        > %{httpdconf}/httpd.conf
 else
    # append it
-   ( 
+   (
      echo "<IfModule mod_jserv.c>"
      echo "	     Include %{jservconf}/jserv.conf"
      echo "</IfModule>"
