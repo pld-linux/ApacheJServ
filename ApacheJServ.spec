@@ -11,6 +11,7 @@
 %define jsdkversion 20000924
 
 Summary:	Servlet engine with support for the leading web server
+Summary(pl):	Silnik serwletów ze wsparciem dla wiod±cego serwera WWW
 Name:		ApacheJServ
 Version:	1.1
 Release:	3
@@ -19,7 +20,7 @@ Source1:	http://www.euronet.nl/~pauls/java/servlet/download/classpathx_servlet-%
 Patch0:		%{name}-enable-secret.patch
 Patch1:		%{name}-DESTDIR.patch
 URL:		http://java.apache.org/
-Copyright:	Freely distributable & usable
+License:	Freely distributable & usable
 Group:		Networking/Daemons
 Group(de):	Netzwerkwesen/Server
 Group(pl):	Sieciowe/Serwery
