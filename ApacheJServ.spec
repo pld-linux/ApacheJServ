@@ -74,8 +74,8 @@ autoconf
 automake
 
 %build
-make -C classpathx_servlet-%{jsdkversion} jar_2_0
-make -C classpathx_servlet-%{jsdkversion}/apidoc
+%{__make} -C classpathx_servlet-%{jsdkversion} jar_2_0
+%{__make} -C classpathx_servlet-%{jsdkversion}/apidoc
 
 # copy API-doc
 mkdir jsdk-doc
@@ -139,7 +139,7 @@ make
 %install
 rm -rf $RPM_BUILD_ROOT
 
-make DESTDIR=$RPM_BUILD_ROOT install
+%{__make} DESTDIR=$RPM_BUILD_ROOT install
 
 echo "default - change on install `date`" > $RPM_BUILD_ROOT/%{jservconf}/jserv.secret.key
 chmod 600 $RPM_BUILD_ROOT/%{jservconf}/jserv.secret.key
