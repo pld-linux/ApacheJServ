@@ -25,7 +25,7 @@ Group(pl):	Sieciowe/Serwery
 Docdir:		%{prefix}/doc
 Requires:	apache >= 1.3.6
 Provides:	jserv jsdk20
-BuildRoot:	/tmp/%{name}-%{version}-root
+BuildRoot:	%{tmpdir}/%{name}-%{version}-root-%(id -u -n)
 
 #BuildRequires:	any-java-compiler
 
@@ -76,7 +76,6 @@ cp classpathx_servlet-%{jsdkversion}/README \
 	classpathx_servlet-%{jsdkversion}/COPYING.LIB \
 	jsdk-doc
 cp -r classpathx_servlet-%{jsdkversion}/apidoc jsdk-doc
-
 
 ### JSERV
 
@@ -330,7 +329,6 @@ echo ""
 
 echo "Please send comments/suggestions regarding"
 echo "this RPM to <zeller@to.com>."
-
 
 %preun
 # do not remove the configured stuff if we upgrade.
