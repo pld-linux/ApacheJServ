@@ -4,19 +4,15 @@
 Summary:	Servlet engine with support for the leading web server
 Summary(pl):	Silnik serwletów ze wsparciem dla wiod±cego serwera WWW
 Name:		ApacheJServ
-Version:	1.1
-Release:	3
+Version:	1.1.2
+Release:	1
 Source0:	http://java.apache.org/jserv/dist/%{name}-%{version}.tar.gz
 Source1:	http://www.euronet.nl/~pauls/java/servlet/download/classpathx_servlet-%{jsdkversion}.tar.gz
 Patch0:		%{name}-enable-secret.patch
-Patch1:		%{name}-DESTDIR.patch
 URL:		http://java.apache.org/
-License:	freely distributable & usable
+License:	freely distributable & usable (JServ), LGPL (JSDK)
 Group:		Networking/Daemons
 BuildRequires:	apache-devel >= 1.3.9-8
-BuildRequires:	autoconf >= 2.13
-BuildRequires:	automake >= 1.4
-BuildRequires:	libtool >= 1.3.3
 BuildRequires:	jdk
 Requires(post):	awk
 Requires(post):	ed
@@ -57,8 +53,7 @@ ten zawiera sunowsk± implementacjê api serletów w javie w wersji 2.0
 
 %prep
 %setup -q -a1
-%patch0
-%patch1 -p1
+%patch0 -p0
 
 # final position of GNU JSDK-Classes
 sed 's|@JSDK_CLASSES@|%{classesdir}/servlet-2.0.jar|g' \
@@ -72,11 +67,6 @@ mv -f conf/jserv.conf.in.new conf/jserv.conf.in
 
 %build
 # prepare compilation
-rm -f missing
-%{__aclocal}
-%{__autoconf}
-%{__automake}
-
 %{__make} -C classpathx_servlet-%{jsdkversion} jar_2_0
 %{__make} -C classpathx_servlet-%{jsdkversion}/apidoc
 
@@ -97,7 +87,8 @@ CFLAGS="$APXS_CFLAGS %{rpmcflags}" ./configure \
 	--with-apxs=%{apxs} \
 	--with-logdir=%{logdir} \
 	--with-servlets=%{servletdir} \
-	--with-JSDK=`pwd`/classpathx_servlet-%{jsdkversion}/servlet-2.0.jar
+	--with-JSDK=`pwd`/classpathx_servlet-%{jsdkversion}/servlet-2.0.jar \
+	--with-jdk-home=/usr/lib/java
 %{__make}
 
 %install
@@ -119,6 +110,9 @@ chmod 600 $RPM_BUILD_ROOT%{jservconf}/jserv.secret.key
 ### GNU JSDK-classes
 install -d $RPM_BUILD_ROOT%{classesdir}
 install classpathx_servlet-%{jsdkversion}/servlet-2.0.jar $RPM_BUILD_ROOT%{classesdir}
+
+find docs jsdk-doc -name 'Makefile*' | xargs rm -f
+rm -rf jsdk-doc/{COPYING.LIB,CVS}
 
 %clean
 rm -rf $RPM_BUILD_ROOT
@@ -326,12 +320,12 @@ sed 's|.*\(Include.*%{jservconf}/jserv.conf\)|#\1|g' \
 %files
 %defattr(644,root,root,755)
 # mmh, we can't give %{_prefix}/docs to %doc ..
-%doc index.html README docs jsdk-doc
+%doc index.html LICENSE README docs jsdk-doc
 
 %dir %{jservconf}
-%config %{jservconf}/jserv.properties
-%config %{jservconf}/zone.properties
-%config %{jservconf}/jserv.conf
+%config(noreplace) %verify(not size mtime md5) %{jservconf}/jserv.properties
+%config(noreplace) %verify(not size mtime md5) %{jservconf}/zone.properties
+%config(noreplace) %verify(not size mtime md5) %{jservconf}/jserv.conf
 
 # these are just for demonstration and thus,
 # no %config-files per-se; do not install
@@ -340,20 +334,22 @@ sed 's|.*\(Include.*%{jservconf}/jserv.conf\)|#\1|g' \
 #%{jservconf}/zone.properties.default
 #%{jservconf}/jserv.conf.default
 
-%attr(-,nobody,nobody) %{jservconf}/jserv.secret.key
+%attr(600,http,http) %{jservconf}/jserv.secret.key
 #%config /etc/rc.d/init.d/jserv
 #%config /etc/logrotate.d/jserv
 #%config /etc/profile.d/jserv.sh
 
-%{libexecdir}/mod_jserv.so
+%attr(755,root,root) %{libexecdir}/mod_jserv.so
 %{libexecdir}/ApacheJServ.jar
 
 %dir %{classesdir}
 %{classesdir}/servlet-2.0.jar
 
 %dir %{servletdir}
+%{servletdir}/Hello.java
+%{servletdir}/Hello.class
 %{servletdir}/IsItWorking.java
 %{servletdir}/IsItWorking.class
 
 # we need to have write access here
-%attr(-,nobody,-) %dir %{logdir}
+%attr(770,root,http) %dir %{logdir}
