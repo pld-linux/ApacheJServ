@@ -20,7 +20,7 @@ Source1:	http://www.euronet.nl/~pauls/java/servlet/download/classpathx_servlet-%
 Patch0:		%{name}-enable-secret.patch
 Patch1:		%{name}-DESTDIR.patch
 URL:		http://java.apache.org/
-License:	Freely distributable & usable
+License:	freely distributable & usable
 Group:		Networking/Daemons
 Requires:	apache >= 1.3.6
 Provides:	jserv jsdk20
