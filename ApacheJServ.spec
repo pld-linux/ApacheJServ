@@ -90,7 +90,7 @@ CFLAGS="$APXS_CFLAGS %{rpmcflags}" ./configure \
 	--with-logdir=%{logdir} \
 	--with-servlets=%{servletdir} \
 	--with-JSDK=`pwd`/classpathx_servlet-%{jsdkversion}/servlet-2.0.jar \
-	--with-jdk-home=/usr/lib/java
+	--with-jdk-home=%{_libdir}/java
 %{__make}
 
 %install
@@ -218,7 +218,7 @@ for lookfor in java jre ; do
 	for loc in \
 		$JAVA_HOME \
 		$JDK_HOME \
-		/usr/lib/java \
+		%{_libdir}/java \
 		/usr/local/java* \
 		/usr/local/jdk*
 	do
