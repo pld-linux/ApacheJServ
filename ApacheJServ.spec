@@ -70,7 +70,8 @@ mv conf/jserv.conf.in.new conf/jserv.conf.in
 
 %build
 # prepare compilation
-aclocal
+rm -f missing
+%{__aclocal}
 %{__autoconf}
 %{__automake}
 
