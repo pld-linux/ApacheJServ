@@ -16,11 +16,12 @@ Version:	1.1
 Release:	3
 Source0:	http://java.apache.org/jserv/dist/%{name}-%{version}.tar.gz
 Source1:	http://www.euronet.nl/~pauls/java/servlet/download/classpathx_servlet-%{jsdkversion}.tar.gz
-Patch0:		ApacheJServ-enable-secret.patch
-Patch1:		ApacheJServ-DESTDIR.patch
+Patch0:		%{name}-enable-secret.patch
+Patch1:		%{name}-DESTDIR.patch
 URL:		http://java.apache.org/
 Copyright:	Freely distributable & usable
 Group:		Networking/Daemons
+Group(de):	Netzwerkwesen/Server
 Group(pl):	Sieciowe/Serwery
 Requires:	apache >= 1.3.6
 Provides:	jserv jsdk20
@@ -43,13 +44,14 @@ a LGPL'ed implementation of sun's java servlet api version 2.0 by Paul
 Siegmann <http://www.euronet.nl/~pauls/java/servlet/>
 
 %description -l pl
-Apache JServ jest silnikiem serwletowym, rozwijanym przez Java Apache Project
-<http://java.apache.org/>. Silnik serwletowy Apache JServ zosta³ napisany
-od pocz±tku do koñca w Javie; nas³uchuje wywo³añ serwletu wykorzystuj±c
-protokó³ Apache Java (AJp). Zazwyczaj wywo³ania te pochodz± z modu³u
-Apache mod_jservmodule (³±cznie z DSO). Pakiet ten zawiera sunowsk±
-implementacjê api serletów w javie w wersji 2.0 (na licencji LGPL)
-napisana przez Paula Siegmanna <http://www.euronet.nl/~pauls/java/servlet/>
+Apache JServ jest silnikiem serwletowym, rozwijanym przez Java Apache
+Project <http://java.apache.org/>. Silnik serwletowy Apache JServ
+zosta³ napisany od pocz±tku do koñca w Javie; nas³uchuje wywo³añ
+serwletu wykorzystuj±c protokó³ Apache Java (AJp). Zazwyczaj wywo³ania
+te pochodz± z modu³u Apache mod_jservmodule (³±cznie z DSO). Pakiet
+ten zawiera sunowsk± implementacjê api serletów w javie w wersji 2.0
+(na licencji LGPL) napisana przez Paula Siegmanna
+<http://www.euronet.nl/~pauls/java/servlet/>
 
 %prep
 %setup -q -a 1
@@ -87,10 +89,10 @@ cp -r classpathx_servlet-%{jsdkversion}/apidoc jsdk-doc
 ### JSERV
 
 APXS_CFLAGS=`$APXS_UTIL -q CFLAGS`
-CFLAGS="$APXS_CFLAGS $RPM_OPT_FLAGS" ./configure \
+CFLAGS="$APXS_CFLAGS %{rpmcflags}" ./configure \
 	--prefix=%{_prefix}          \
 	--disable-debugging           \
-	--with-apxs=/usr/bin/apxs \
+	--with-apxs=/usr/sbin/apxs \
 	--with-logdir=%{logdir}       \
 	--with-servlets=%{servletdir} \
 	--with-JSDK=`pwd`/classpathx_servlet-%{jsdkversion}/servlet-2.0.jar
