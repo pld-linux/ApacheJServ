@@ -22,8 +22,6 @@ Patch1:		%{name}-DESTDIR.patch
 URL:		http://java.apache.org/
 License:	Freely distributable & usable
 Group:		Networking/Daemons
-Group(de):	Netzwerkwesen/Server
-Group(pl):	Sieciowe/Serwery
 Requires:	apache >= 1.3.6
 Provides:	jserv jsdk20
 BuildRoot:	%{tmpdir}/%{name}-%{version}-root-%(id -u -n)
