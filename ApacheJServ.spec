@@ -107,10 +107,10 @@ echo "default - change on install `date`" > $RPM_BUILD_ROOT/%{jservconf}/jserv.s
 chmod 600 $RPM_BUILD_ROOT/%{jservconf}/jserv.secret.key
 
 # currently disabled
-#install -d $RPM_BUILD_ROOT%{_sysconfdir}/rc.d/init.d
+#install -d $RPM_BUILD_ROOT/etc/rc.d/init.d
 #install -d $RPM_BUILD_ROOT%{_sysconfdir}/profile.d
 #install -d $RPM_BUILD_ROOT%{_sysconfdir}/logrotate.d
-#install -m755 src/scripts/package/rpm/jserv.init      $RPM_BUILD_ROOT%{_sysconfdir}/rc.d/init.d/jserv
+#install -m755 src/scripts/package/rpm/jserv.init      $RPM_BUILD_ROOT/etc/rc.d/init.d/jserv
 #install -m755 src/scripts/package/rpm/jserv.sh        $RPM_BUILD_ROOT%{_sysconfdir}/profile.d
 #install -m644 src/scripts/package/rpm/jserv.logrotate $RPM_BUILD_ROOT%{_sysconfdir}/logrotate.d/jserv
 
@@ -343,7 +343,7 @@ sed 's|.*\(Include.*%{jservconf}/jserv.conf\)|#\1|g' \
 #%{jservconf}/jserv.conf.default
 
 %attr(-,nobody,nobody) %{jservconf}/jserv.secret.key
-#%config %{_sysconfdir}/rc.d/init.d/jserv
+#%config /etc/rc.d/init.d/jserv
 #%config %{_sysconfdir}/logrotate.d/jserv
 #%config %{_sysconfdir}/profile.d/jserv.sh
 
