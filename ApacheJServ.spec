@@ -8,14 +8,14 @@
 %define logdir	   /var/log/httpd
 %define servletdir /home/httpd/servlets
 %define classesdir /home/httpd/classes
-%define jsdkversion 19991120
+%define jsdkversion 20000924
 
 Summary:	Servlet engine with support for the leading web server
 Name:		ApacheJServ
 Version:	1.1
 Release:	3
 Source0:	http://java.apache.org/jserv/dist/%{name}-%{version}.tar.gz
-Source1:	http://www.euronet.nl/~pauls/java/servlet/download/%{version}%{name}classpathx_servlet-%{jsdkversion}.tar.gz
+Source1:	http://www.euronet.nl/~pauls/java/servlet/download/classpathx_servlet-%{jsdkversion}.tar.gz
 Patch0:		ApacheJServ-enable-secret.patch
 Patch1:		ApacheJServ-DESTDIR.patch
 URL:		http://java.apache.org/
