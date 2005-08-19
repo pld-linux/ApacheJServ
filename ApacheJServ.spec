@@ -1,6 +1,8 @@
+# Conditional build:
+%bcond_with	gcj	# use javac instead of GCJ
+
 %define		jsdkversion	20000924
 %define		apxs		/usr/sbin/apxs1
-
 Summary:	Servlet engine with support for the leading web server
 Summary(pl):	Silnik serwletów ze wsparciem dla wiod±cego serwera WWW
 Name:		ApacheJServ
@@ -16,7 +18,16 @@ Patch0:		%{name}-enable-secret.patch
 Patch1:		%{name}-ac.patch
 URL:		http://java.apache.org/
 BuildRequires:	apache1-devel >= 1.3.9-8
+%if %{with gcj}
+BuildRequires:	gcc-java
+BuildRequires:	fastjar
+#BuildRequires:	gcc-java-tools
+Requires:	/usr/bin/gij
+%else
+#BuildRequires:	jar
 BuildRequires:	jdk
+#Requires:	jre
+%endif
 Requires(post):	awk
 Requires(post):	ed
 Requires(post):	grep
@@ -61,47 +72,56 @@ ten zawiera sunowsk± implementacjê api serletów w javie w wersji 2.0
 %patch1 -p0
 
 # final position of GNU JSDK-Classes
-sed 's|@JSDK_CLASSES@|%{classesdir}/servlet-2.0.jar|g' \
-	conf/jserv.properties.in > conf/jserv.properties.in.new
-mv -f conf/jserv.properties.in.new conf/jserv.properties.in
+sed -i -e 's|@JSDK_CLASSES@|%{classesdir}/servlet-2.0.jar|g' conf/jserv.properties.in 
 
 # do not load module in provided jserv.conf; we do this in httpd.conf
-sed 's|@LOAD_OR_NOT@|#|g' conf/jserv.conf.in \
-	> conf/jserv.conf.in.new
-mv -f conf/jserv.conf.in.new conf/jserv.conf.in
+sed -i -e 's|@LOAD_OR_NOT@|#|g' conf/jserv.conf.in
+
+# we don't want gcj related deps
+sed -i -e '/^SUBDIRS/s,java,,' src/Makefile.am
+sed -i -e '/^SUBDIRS/s,example,,' Makefile.am
 
 %build
-%{__gettextize}
-%{__libtoolize}
-%{__aclocal}
-%{__autoconf}
-#{__autoheader}
-#{__automake}
+if [ ! -f _autotools.done.1 ]; then
+	%{__gettextize}
+	%{__libtoolize}
+	%{__aclocal}
+	%{__autoconf}
+	%{__automake}
+	touch _autotools.done.1
+fi
 
 # prepare compilation
-%{__make} -C classpathx_servlet-%{jsdkversion} jar_2_0
-%{__make} -C classpathx_servlet-%{jsdkversion}/apidoc
+if [ ! -f classpathx_servlet-%{jsdkversion}/servlet-2.0.jar ]; then
+	%{__make} -C classpathx_servlet-%{jsdkversion} jar_2_0
+fi
 
-# copy API-doc
-mkdir -p jsdk-doc
-cp classpathx_servlet-%{jsdkversion}/README \
-	classpathx_servlet-%{jsdkversion}/AUTHORS \
-	classpathx_servlet-%{jsdkversion}/COPYING.LIB \
-	jsdk-doc
-cp -r classpathx_servlet-%{jsdkversion}/apidoc jsdk-doc
+if [ ! -d jsdk-doc ]; then
+	%{__make} -C classpathx_servlet-%{jsdkversion}/apidoc
+
+	# copy API-doc
+	mkdir jsdk-doc
+	cp classpathx_servlet-%{jsdkversion}/{README,AUTHORS,COPYING.LIB} jsdk-doc
+	cp -r classpathx_servlet-%{jsdkversion}/apidoc jsdk-doc
+fi
+
+#%{!?with_gcj:GCJ=javac GCJFLAGS= CLASSPATH=`pwd`  JAVAC_OPT="-source 1.4" ac_cv_objext=class} \
 
 ### JSERV
-
 APXS_CFLAGS=`%{apxs} -q CFLAGS`
+%{!?with_gcj:GCJ=javac GCJFLAGS= CLASSPATH=`pwd`  JAVAC_OPT="-source 1.4"} \
 CFLAGS="$APXS_CFLAGS %{rpmcflags}" ./configure \
 	--prefix=%{_prefix} \
 	--disable-debugging \
 	--with-apxs=%{apxs} \
 	--with-logdir=%{logdir} \
 	--with-servlets=%{servletdir} \
+    %{!?with_gcj:--with-javac=%{_bindir}/javac --with-jdk-home=%{_libdir}/java} \
+    %{?with_gcj:--with-javac=%{_bindir}/gcj --with-jar=%{_bindir}/fastjar} \
 	--with-JSDK=`pwd`/classpathx_servlet-%{jsdkversion}/servlet-2.0.jar \
-	--with-jdk-home=%{_libdir}/java
 
+%{__make} %{!?with_gcj:OBJEXT=class JAVAC_OPT='-source 1.4'} \
+	-C src/java
 %{__make}
 
 %install
@@ -110,6 +130,12 @@ install -d $RPM_BUILD_ROOT%{classesdir}
 #install -d $RPM_BUILD_ROOT/etc/{rc.d/init.d,profile.d,logrotate.d}
 
 %{__make} install \
+	DESTDIR=$RPM_BUILD_ROOT
+
+# we removed java, so do it manually
+%{__make} install \
+	%{!?with_gcj:OBJEXT=class JAVAC_OPT='-source 1.4'} \
+	-C src/java \
 	DESTDIR=$RPM_BUILD_ROOT
 
 echo "default - change on install `date`" > $RPM_BUILD_ROOT%{jservconf}/jserv.secret.key
@@ -123,7 +149,7 @@ chmod 600 $RPM_BUILD_ROOT%{jservconf}/jserv.secret.key
 ### GNU JSDK-classes
 install classpathx_servlet-%{jsdkversion}/servlet-2.0.jar $RPM_BUILD_ROOT%{classesdir}
 
-find docs jsdk-doc -name 'Makefile*' | xargs rm -f
+find jsdk-doc -name 'Makefile*' | xargs rm -f
 rm -rf jsdk-doc/{COPYING.LIB,CVS}
 
 %clean
@@ -357,11 +383,13 @@ sed 's|.*\(Include.*%{jservconf}/jserv.conf\)|#\1|g' \
 %dir %{classesdir}
 %{classesdir}/servlet-2.0.jar
 
+%if 0
 %dir %{servletdir}
 %{servletdir}/Hello.java
 %{servletdir}/Hello.class
 %{servletdir}/IsItWorking.java
 %{servletdir}/IsItWorking.class
+%endif
 
 # we need to have write access here
 %attr(770,root,http) %dir %{logdir}
