@@ -1,11 +1,11 @@
 %define		jsdkversion	20000924
-%define		apxs		/usr/sbin/apxs
+%define		apxs		/usr/sbin/apxs1
 
 Summary:	Servlet engine with support for the leading web server
 Summary(pl):	Silnik serwletów ze wsparciem dla wiod±cego serwera WWW
 Name:		ApacheJServ
 Version:	1.1.2
-Release:	1
+Release:	0.1
 License:	freely distributable & usable (JServ), LGPL (JSDK)
 Group:		Networking/Daemons
 Source0:	http://java.apache.org/jserv/dist/%{name}-%{version}.tar.gz
@@ -13,26 +13,28 @@ Source0:	http://java.apache.org/jserv/dist/%{name}-%{version}.tar.gz
 Source1:	http://www.euronet.nl/~pauls/java/servlet/download/classpathx_servlet-%{jsdkversion}.tar.gz
 # Source1-md5:	a81feddb91b1358f9aaed94e83eddb54
 Patch0:		%{name}-enable-secret.patch
+Patch1:		%{name}-ac.patch
 URL:		http://java.apache.org/
-BuildRequires:	apache-devel >= 1.3.9-8
+BuildRequires:	apache1-devel >= 1.3.9-8
 BuildRequires:	jdk
 Requires(post):	awk
 Requires(post):	ed
-Requires(post,preun):	fileutils
 Requires(post):	grep
-Requires(post,preun):	sed
 Requires(post):	sh-utils
 Requires(post):	textutils
-Requires:	apache >= 1.3.6
-Provides:	jserv jsdk20
+Requires(post,preun):	fileutils
+Requires(post,preun):	sed
+Requires:	apache1 >= 1.3.6
+Provides:	jserv
+Provides:	jsdk20
 BuildRoot:	%{tmpdir}/%{name}-%{version}-root-%(id -u -n)
 
 %define		libexecdir	%(%{apxs} -q LIBEXECDIR)
 %define		httpdconf	%(%{apxs} -q SYSCONFDIR)
 %define		jservconf	%{httpdconf}/jserv
 %define		logdir		/var/log/httpd
-%define		servletdir	/home/services/httpd/servlets
-%define		classesdir	/home/services/httpd/classes
+%define		servletdir	%{_datadir}/jserv/servlets
+%define		classesdir	%{_datadir}/jserv/classes
 
 %description
 Apache JServ is a servlet engine, developed by the Java Apache Project
@@ -56,6 +58,7 @@ ten zawiera sunowsk± implementacjê api serletów w javie w wersji 2.0
 %prep
 %setup -q -a1
 %patch0 -p0
+%patch1 -p0
 
 # final position of GNU JSDK-Classes
 sed 's|@JSDK_CLASSES@|%{classesdir}/servlet-2.0.jar|g' \
@@ -68,12 +71,19 @@ sed 's|@LOAD_OR_NOT@|#|g' conf/jserv.conf.in \
 mv -f conf/jserv.conf.in.new conf/jserv.conf.in
 
 %build
+%{__gettextize}
+%{__libtoolize}
+%{__aclocal}
+%{__autoconf}
+#{__autoheader}
+#{__automake}
+
 # prepare compilation
 %{__make} -C classpathx_servlet-%{jsdkversion} jar_2_0
 %{__make} -C classpathx_servlet-%{jsdkversion}/apidoc
 
 # copy API-doc
-mkdir jsdk-doc
+mkdir -p jsdk-doc
 cp classpathx_servlet-%{jsdkversion}/README \
 	classpathx_servlet-%{jsdkversion}/AUTHORS \
 	classpathx_servlet-%{jsdkversion}/COPYING.LIB \
@@ -91,6 +101,7 @@ CFLAGS="$APXS_CFLAGS %{rpmcflags}" ./configure \
 	--with-servlets=%{servletdir} \
 	--with-JSDK=`pwd`/classpathx_servlet-%{jsdkversion}/servlet-2.0.jar \
 	--with-jdk-home=%{_libdir}/java
+
 %{__make}
 
 %install
@@ -324,9 +335,9 @@ sed 's|.*\(Include.*%{jservconf}/jserv.conf\)|#\1|g' \
 %doc index.html LICENSE README docs jsdk-doc
 
 %dir %{jservconf}
-%config(noreplace) %verify(not size mtime md5) %{jservconf}/jserv.properties
-%config(noreplace) %verify(not size mtime md5) %{jservconf}/zone.properties
-%config(noreplace) %verify(not size mtime md5) %{jservconf}/jserv.conf
+%config(noreplace) %verify(not md5 mtime size) %{jservconf}/jserv.properties
+%config(noreplace) %verify(not md5 mtime size) %{jservconf}/zone.properties
+%config(noreplace) %verify(not md5 mtime size) %{jservconf}/jserv.conf
 
 # these are just for demonstration and thus,
 # no %config-files per-se; do not install
