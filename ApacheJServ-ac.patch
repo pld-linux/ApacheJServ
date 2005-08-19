@@ -1,0 +1,98 @@
+--- ./configure.in~	2000-06-17 21:00:39.000000000 +0200
++++ ./configure.in	2005-07-21 15:48:15.000000000 +0300
+@@ -311,7 +311,7 @@
+    
+     for testdir in ${apache_dir} ${apache_include} ${libexecdir} ${sysconfigdir} ; do
+         if ${TEST} ! -d ${testdir} ; then
+-            AC_MSG_ERROR(${testdir} doesn't exist, not readable or not a directory)
++            AC_MSG_WARN(${testdir} doesn't exist, not readable or not a directory)
+         fi
+     done
+   
+
+
+http_config requires httpd.h, so we skip it
+--- ./configure.in~	2005-07-22 23:40:01.000000000 +0300
++++ ./configure.in	2005-07-22 23:47:17.000000000 +0300
+@@ -527,7 +527,7 @@
+ 
+ if ${TEST} -n ${apache_dir} ; then
+ # now that we have include dir check for these
+-AC_CHECK_HEADERS([httpd.h http_config.h http_core.h http_log.h http_main.h http_protocol.h util_script.h util_md5.h os-inline.c], 
++AC_CHECK_HEADERS([httpd.h http_core.h http_log.h http_main.h http_protocol.h util_script.h util_md5.h os-inline.c], 
+ [
+ # do nothing if they are all found
+ ],
+--- ./configure.in~	2005-07-23 15:19:08.000000000 +0300
++++ ./configure.in	2005-07-23 15:35:07.000000000 +0300
+@@ -527,7 +527,7 @@
+ 
+ if ${TEST} -n ${apache_dir} ; then
+ # now that we have include dir check for these
+-AC_CHECK_HEADERS([httpd.h http_core.h http_log.h http_main.h http_protocol.h util_script.h util_md5.h os-inline.c], 
++AC_CHECK_HEADERS([httpd.h os-inline.c], 
+ [
+ # do nothing if they are all found
+ ],
+--- ./configure.in~	2005-07-23 15:35:07.000000000 +0300
++++ ./configure.in	2005-07-23 15:37:01.000000000 +0300
+@@ -676,7 +676,7 @@
+     echo "  ${TARGET_CLASSPATH}"
+ 
+     echo ""
+-    if ${TEST} ! -f ${BOOTFILE} ; then
++    if ${TEST} -z "${BOOTFILE}" -o ! -f ${BOOTFILE} ; then
+         echo "You might consider putting frequently used options into "
+         echo "${BOOTFILE}, one per line."
+     else
+--- ./configure.in~	2005-07-23 15:37:19.000000000 +0300
++++ ./configure.in	2005-07-23 15:40:01.000000000 +0300
+@@ -676,7 +676,8 @@
+     echo "  ${TARGET_CLASSPATH}"
+ 
+     echo ""
+-    if ${TEST} -z "${BOOTFILE}" -o ! -f ${BOOTFILE} ; then
++	set -x
++    if ${TEST} -z "${BOOTFILE}" -o ! -f "${BOOTFILE}" ; then
+         echo "You might consider putting frequently used options into "
+         echo "${BOOTFILE}, one per line."
+     else
+--- ./configure.in~	2005-08-19 15:35:30.000000000 +0300
++++ ./configure.in	2005-08-19 15:44:07.000000000 +0300
+@@ -50,6 +50,7 @@
+ AC_PROG_INSTALL
+ AC_PROG_LN_S
+ AC_PROG_CC
++AM_PROG_GCJ
+ 
+ # The things below might be a little bit overkill, but better that than
+ # failing with no obvious reason...
+--- ./src/c/Makefile.am~	2000-03-31 18:03:23.000000000 +0200
++++ ./src/c/Makefile.am	2005-08-19 15:53:44.000000000 +0300
+@@ -18,6 +18,7 @@
+ EXTRA_DIST = ${APACHE_FILES} ${HDRS} jserv_shmedit.c
+ 
+ libjserv_la_LDFLAGS = -avoid-version -o libjserv.la -rpath ${LIBEXECDIR}
++libjserv_la_CFLAGS = $(AM_CFLAGS)
+ 
+ jserv_shmedit:
+ 	${CC} jserv_shmedit.o jserv_mmap.o -o jserv_shmedit -lnsl
+--- ./src/c/Makefile.am~	2005-08-19 15:53:44.000000000 +0300
++++ ./src/c/Makefile.am	2005-08-19 15:54:34.000000000 +0300
+@@ -38,11 +38,11 @@
+ 	@echo "Copying files to Apache Modules Directory..."
+ 	${top_srcdir}/src/scripts/build/unix/mkinstalldirs $(DESTDIR)${LIBEXECDIR}
+ 
+-	# on AIX, the .so file is created with a number, ie:
+-	# libjserv.so.0.0.0. It seems as though on though a libjserv.a
+-	# file is also created (and on Solaris, the .a file isn't created)
+-	# so check for that to make things work.
+-	# HPUX uses .sl
++# on AIX, the .so file is created with a number, ie:
++# libjserv.so.0.0.0. It seems as though on though a libjserv.a
++# file is also created (and on Solaris, the .a file isn't created)
++# so check for that to make things work.
++# HPUX uses .sl
+ 	@ if ${TEST} -e ./.libs/${LIBJA} ; then \
+ 		echo "${CP} ./.libs/${LIBJA} $(DESTDIR)${LIBEXECDIR}/${MODSO}" ; \
+ 		${CP} ./.libs/${LIBJA} $(DESTDIR)${LIBEXECDIR}/${MODSO} ; \
