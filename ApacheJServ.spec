@@ -7,7 +7,7 @@ Summary:	Servlet engine with support for the leading web server
 Summary(pl):	Silnik serwletów ze wsparciem dla wiod±cego serwera WWW
 Name:		ApacheJServ
 Version:	1.1.2
-Release:	0.1
+Release:	0.4
 License:	freely distributable & usable (JServ), LGPL (JSDK)
 Group:		Networking/Daemons
 Source0:	http://java.apache.org/jserv/dist/%{name}-%{version}.tar.gz
@@ -46,6 +46,7 @@ BuildRoot:	%{tmpdir}/%{name}-%{version}-root-%(id -u -n)
 %define		logdir		/var/log/httpd
 %define		servletdir	%{_datadir}/jserv/servlets
 %define		classesdir	%{_datadir}/jserv/classes
+%define		_noautocompressdoc  package-list
 
 %description
 Apache JServ is a servlet engine, developed by the Java Apache Project
@@ -65,6 +66,13 @@ te pochodz± z modu³u Apache mod_jservmodule (³±cznie z DSO). Pakiet
 ten zawiera sunowsk± implementacjê api serletów w javie w wersji 2.0
 (na licencji LGPL) napisana przez Paula Siegmanna
 <http://www.euronet.nl/~pauls/java/servlet/>
+
+%package doc
+Summary:	ApacheJServ documentation
+Group:		Development/Languages/Java
+
+%description doc
+ApacheJserv documentation.
 
 %prep
 %setup -q -a1
@@ -150,7 +158,7 @@ chmod 600 $RPM_BUILD_ROOT%{jservconf}/jserv.secret.key
 install classpathx_servlet-%{jsdkversion}/servlet-2.0.jar $RPM_BUILD_ROOT%{classesdir}
 
 find jsdk-doc -name 'Makefile*' | xargs rm -f
-rm -rf jsdk-doc/{COPYING.LIB,CVS}
+rm -rf jsdk-doc/{COPYING.LIB,CVS} jsdk-doc/apidoc/CVS
 
 %clean
 rm -rf $RPM_BUILD_ROOT
@@ -358,7 +366,7 @@ sed 's|.*\(Include.*%{jservconf}/jserv.conf\)|#\1|g' \
 %files
 %defattr(644,root,root,755)
 # mmh, we can't give %{_prefix}/docs to %doc ..
-%doc index.html LICENSE README docs jsdk-doc
+%doc LICENSE README
 
 %dir %{jservconf}
 %config(noreplace) %verify(not md5 mtime size) %{jservconf}/jserv.properties
@@ -393,3 +401,7 @@ sed 's|.*\(Include.*%{jservconf}/jserv.conf\)|#\1|g' \
 
 # we need to have write access here
 %attr(770,root,http) %dir %{logdir}
+
+%files doc
+%doc index.html docs
+%doc jsdk-doc
