@@ -1,0 +1,92 @@
+#!/bin/sh
+#
+# jserv	jserv short service description
+#
+# chkconfig:	345 80 20
+#
+# description:	jserv long service description
+#
+# $Id$
+
+# Source function library
+. /etc/rc.d/init.d/functions
+
+# Get network config
+. /etc/sysconfig/network
+
+# Get service config - may override defaults
+[ -f /etc/sysconfig/jserv ] && . /etc/sysconfig/jserv
+
+# Check that networking is up.
+if is_yes "${NETWORKING}"; then
+	if [ ! -f /var/lock/subsys/network ]; then
+		msg_network_down jserv
+		exit 1
+	fi
+else
+	exit 0
+fi
+
+
+# See how we were called.
+case "$1" in
+  start)
+	# Check if the service is already running?
+	if [ ! -f /var/lock/subsys/jserv ]; then
+		msg_starting jserv
+		daemon jserv
+		RETVAL=$?
+		[ $RETVAL -eq 0 ] && touch /var/lock/subsys/jserv
+	else
+		msg_already_running jserv
+	fi
+	;;
+  stop)
+	if [ -f /var/lock/subsys/jserv ]; then
+		# Stop daemons.
+		msg_stopping jserv
+		killproc jserv
+		rm -f /var/lock/subsys/jserv
+	else
+		msg_not_running jserv
+	fi
+	;;
+  restart)
+	$0 stop
+	$0 start
+	exit $?
+	;;
+  reload)
+	if [ -f /var/lock/subsys/jserv ]; then
+		# show "Reload %s service" jserv
+		msg_reloading jserv
+		killproc jserv -HUP
+		RETVAL=$?
+	else
+		# show "%s service is not running." jserv
+		msg_not_running jserv >&2
+		RETVAL=7
+	fi
+	;;
+  force-reload)
+	# if program allows reloading without stopping
+	$0 reload
+
+	# or if it doesn't
+	$0 restart
+
+	exit $?
+	;;
+  status)
+	status jserv
+	RETVAL=$?
+	;;
+  *)
+	msg_usage "$0 {start|stop|restart|reload|force-reload|status}"
+	exit 3
+esac
+
+exit $RETVAL
+
+# This must be last line !
+# vi:syntax=sh:tw=78:ts=4:sw=4
