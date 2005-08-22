@@ -27,14 +27,13 @@ else
 	exit 0
 fi
 
-
 # See how we were called.
 case "$1" in
   start)
 	# Check if the service is already running?
 	if [ ! -f /var/lock/subsys/jserv ]; then
 		msg_starting jserv
-		daemon jserv
+		daemon --user jserv jserv
 		RETVAL=$?
 		[ $RETVAL -eq 0 ] && touch /var/lock/subsys/jserv
 	else
@@ -58,12 +57,10 @@ case "$1" in
 	;;
   reload)
 	if [ -f /var/lock/subsys/jserv ]; then
-		# show "Reload %s service" jserv
 		msg_reloading jserv
 		killproc jserv -HUP
 		RETVAL=$?
 	else
-		# show "%s service is not running." jserv
 		msg_not_running jserv >&2
 		RETVAL=7
 	fi
