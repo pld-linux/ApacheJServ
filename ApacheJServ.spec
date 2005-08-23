@@ -1,13 +1,16 @@
+# TODO
+# - separate package for jsdk?
+#
 # Conditional build:
 %bcond_with	gcj	# use javac instead of GCJ
-
+#
 %define		apxs		/usr/sbin/apxs1
 %define		jsdkversion	20000924
 Summary:	Servlet engine with support for the leading web server
 Summary(pl):	Silnik serwletów ze wsparciem dla wiod±cego serwera WWW
 Name:		ApacheJServ
 Version:	1.1.2
-Release:	0.19
+Release:	0.27
 License:	freely distributable & usable (JServ), LGPL (JSDK)
 Group:		Networking/Daemons
 Source0:	http://java.apache.org/jserv/dist/%{name}-%{version}.tar.gz
@@ -18,6 +21,7 @@ Source2:	%{name}.conf
 Source3:	%{name}.init
 Patch0:		%{name}-enable-secret.patch
 Patch1:		%{name}-ac.patch
+Patch2:		%{name}-jre-env.patch
 URL:		http://java.apache.org/
 BuildRequires:	apache1-devel >= 1.3.9-8
 BuildRequires:	rpmbuild(macros) >= 1.228
@@ -36,10 +40,8 @@ Provides:	jsdk20
 BuildRoot:	%{tmpdir}/%{name}-%{version}-root-%(id -u -n)
 
 %define		_pkglibdir	%(%{apxs} -q LIBEXECDIR 2>/dev/null)
-%define		x_sysconfdir	%(%{apxs} -q SYSCONFDIR 2>/dev/null)
 %define		httpdconf	%(%{apxs} -q SYSCONFDIR 2>/dev/null)
 %define		_sysconfdir	/etc/jserv
-%define		x_sysconfdir	%{httpdconf}/jserv
 %define		logdir		/var/log/jserv
 %define		servletdir	%{_datadir}/jserv/servlets
 %define		_noautocompressdoc  package-list
@@ -67,6 +69,11 @@ ten zawiera sunowsk± implementacjê api serletów w javie w wersji 2.0
 Summary:	ApacheJServ initscript
 Group:		Development/Languages/Java
 Requires:	%{name} = %{version}-%{release}
+BuildRequires:	rpmbuild(macros) >= 1.202
+Requires(pre):  /bin/id
+Requires(pre):  /usr/bin/getgid
+Requires(pre):  /usr/sbin/useradd
+Requires(pre):  /usr/sbin/groupadd
 
 %description init
 JServ initscript for standalone mode.
@@ -82,6 +89,7 @@ ApacheJserv documentation.
 %setup -q -a1
 %patch0 -p0
 %patch1 -p0
+%patch2 -p1
 
 sed -i -e '
 	s|@JSDK_CLASSES@|%{_javadir}/servlet-2.0.jar|g
@@ -126,7 +134,7 @@ CFLAGS="$(%{apxs} -q CFLAGS) %{rpmcflags}"
 	--with-logdir=%{logdir} \
 	--with-servlets=%{servletdir} \
 	%{!?with_gcj:GCJ=javac GCJFLAGS= CLASSPATH=`pwd` JAVAC_OPT="-source 1.4"} \
-    %{!?with_gcj:--with-javac=%{_bindir}/javac --with-jdk-home=%{_libdir}/java} \
+    %{!?with_gcj:--with-javac=%{_bindir}/javac --with-java=%{_bindir}/java --with-jdk-home=%{_libdir}/java} \
     %{?with_gcj:--with-javac=%{_bindir}/gcj --with-jar=%{_bindir}/fastjar} \
 	--with-JSDK=`pwd`/classpathx_servlet-%{jsdkversion}/servlet-2.0.jar
 
@@ -164,14 +172,15 @@ install classpathx_servlet-%{jsdkversion}/servlet-2.0.jar $RPM_BUILD_ROOT%{_java
 find jsdk-doc -name 'Makefile*' | xargs rm -f
 rm -rf jsdk-doc/{COPYING.LIB,CVS} jsdk-doc/apidoc/CVS
 
+# duplicate
+rm -f $RPM_BUILD_ROOT%{_sysconfdir}/jserv.conf
+
 %clean
 rm -rf $RPM_BUILD_ROOT
 
 %post
 if [ "$1" = 1 ]; then
-	# use fortune + install-date + process-list to create pseudo-random, hardly
-	# guessable secret key. Use md5sum to create a hash from this, if available:
-	(fortune 2>/dev/null; date; ps -eal 2>/dev/null) \
+	dd if=/dev/urandom bs=1 count=42 2>/dev/null \
 		| (md5sum 2>/dev/null || cat) > %{_sysconfdir}/jserv.secret.key
 fi
 %service apache restart
@@ -180,6 +189,11 @@ fi
 if [ "$1" = "0" ]; then
 	%service -q apache restart
 fi
+
+
+%pre init
+%groupadd -P %{name}-init -g 154 jserv
+%useradd -P %{name}-init -u 154 -g jserv -d /etc/jserv -c "JServ User" jserv
 
 %post init
 /sbin/chkconfig --add jserv
@@ -192,6 +206,12 @@ if [ "$1" = 0 ]; then
 	/sbin/chkconfig --del jserv
 fi
 
+%postun init
+if [ "$1" = "0" ]; then
+	%userremove jserv
+	%groupremove jserv
+fi
+
 %files
 %defattr(644,root,root,755)
 %doc LICENSE README
@@ -199,7 +219,6 @@ fi
 %attr(640,root,root) %config(noreplace) %verify(not md5 mtime size) %{httpdconf}/conf.d/*_mod_jserv.conf
 %attr(640,root,http) %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/jserv.properties
 %attr(640,root,http) %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/zone.properties
-%attr(640,root,root) %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/jserv.conf
 %attr(640,root,http) %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/jserv.secret.key
 #%attr(640,root,root) %config(noreplace) %verify(not size mtime md5) /etc/logrotate.d/jserv
 #%config /etc/profile.d/jserv.sh
