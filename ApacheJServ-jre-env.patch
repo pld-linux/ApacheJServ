@@ -1,0 +1,10 @@
+--- ./conf/jserv.properties.in~	2005-08-22 15:57:00.000000000 +0300
++++ ./conf/jserv.properties.in	2005-08-23 12:14:27.000000000 +0300
+@@ -60,6 +60,7 @@
+ # Syntax: wrapper.env=[name]=[value] (String)
+ # Default: NONE on Unix Systems
+ #          SystemDrive and SystemRoot with appropriate values on Win32 systems
++wrapper.env=LANG=en_US
+ 
+ # An environment name with value copied from caller to Java Virtual Machine
+ # Syntax: wrapper.env.copy=[name] (String)
