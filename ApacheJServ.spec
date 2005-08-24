@@ -52,8 +52,8 @@ Apache JServ is a servlet engine, developed by the Java Apache Project
 in 100pc Java application, and listens for servlet requests using the
 Apache Java protocol (AJp). Typically, these requests will originate
 from the mod_jserv Apache module (DSO included). This package contains
-a LGPL'ed implementation of sun's java servlet api version 2.0 by Paul
-Siegmann <http://www.euronet.nl/~pauls/java/servlet/>
+a LGPL'ed implementation of Sun's Java Servlet API version 2.0 by Paul
+Siegmann <http://www.euronet.nl/~pauls/java/servlet/>.
 
 %description -l pl
 Apache JServ jest silnikiem serwletowym, rozwijanym przez Java Apache
@@ -61,15 +61,15 @@ Project <http://java.apache.org/>. Silnik serwletowy Apache JServ
 zosta³ napisany od pocz±tku do koñca w Javie; nas³uchuje wywo³añ
 serwletu wykorzystuj±c protokó³ Apache Java (AJp). Zazwyczaj wywo³ania
 te pochodz± z modu³u Apache mod_jservmodule (³±cznie z DSO). Pakiet
-ten zawiera sunowsk± implementacjê api serletów w javie w wersji 2.0
-(na licencji LGPL) napisana przez Paula Siegmanna
-<http://www.euronet.nl/~pauls/java/servlet/>
+ten zawiera implementacjê Java Servlet API Suna w wersji 2.0 napisan±
+przez Paula Siegmanna (na licencji LGPL)
+<http://www.euronet.nl/~pauls/java/servlet/>.
 
 %package init
 Summary:	ApacheJServ initscript
+Summary(pl):	Skrypt startowy ApacheJServ
 Group:		Development/Languages/Java
 Requires:	%{name} = %{version}-%{release}
-BuildRequires:	rpmbuild(macros) >= 1.202
 Requires(pre):  /bin/id
 Requires(pre):  /usr/bin/getgid
 Requires(pre):  /usr/sbin/useradd
@@ -78,12 +78,19 @@ Requires(pre):  /usr/sbin/groupadd
 %description init
 JServ initscript for standalone mode.
 
+%description init -l pl
+Skrypt startowy JServ dla trybu samodzielnego.
+
 %package doc
 Summary:	ApacheJServ documentation
+Summary(pl):	Dokumentacja do ApacheJServ
 Group:		Development/Languages/Java
 
 %description doc
 ApacheJserv documentation.
+
+%description doc -l pl
+Dokumentacja do ApacheJServ.
 
 %prep
 %setup -q -a1
