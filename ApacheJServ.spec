@@ -2,7 +2,7 @@
 # - separate package for jsdk?
 #
 # Conditional build:
-%bcond_with	gcj	# use javac instead of GCJ
+%bcond_with	gcj	# use GCJ instead of javac
 #
 %define		apxs		/usr/sbin/apxs1
 %define		jsdkversion	20000924
@@ -10,7 +10,7 @@ Summary:	Servlet engine with support for the leading web server
 Summary(pl):	Silnik serwletów ze wsparciem dla wiod±cego serwera WWW
 Name:		ApacheJServ
 Version:	1.1.2
-Release:	0.33
+Release:	0.34
 License:	freely distributable & usable (JServ), LGPL (JSDK)
 Group:		Networking/Daemons
 Source0:	http://java.apache.org/jserv/dist/%{name}-%{version}.tar.gz
@@ -159,27 +159,21 @@ CFLAGS="$(%{apxs} -q CFLAGS) %{rpmcflags}"
 
 %install
 rm -rf $RPM_BUILD_ROOT
-install -d $RPM_BUILD_ROOT%{_javadir}
-install -d $RPM_BUILD_ROOT/etc/apache/conf.d
-install -d $RPM_BUILD_ROOT/etc/{rc.d/init.d,profile.d,logrotate.d}
-install %{SOURCE2} $RPM_BUILD_ROOT/etc/apache/conf.d/81_mod_jserv.conf
+install -d $RPM_BUILD_ROOT{/etc/rc.d/init.d,%{httpdconf}/conf.d,%{_javadir}}
+
+install %{SOURCE2} $RPM_BUILD_ROOT%{httpdconf}/conf.d/81_mod_jserv.conf
 install %{SOURCE3} $RPM_BUILD_ROOT/etc/rc.d/init.d/jserv
 
 %{__make} install \
 	DESTDIR=$RPM_BUILD_ROOT
 
-# we removed java, so do it manually
+# we removed java from SUBDIRS, so do it manually
 %{__make} install \
 	%{!?with_gcj:OBJEXT=class JAVAC_OPT='-source 1.4'} \
 	-C src/java \
 	DESTDIR=$RPM_BUILD_ROOT
 
 echo "default - change on install" > $RPM_BUILD_ROOT%{_sysconfdir}/jserv.secret.key
-
-# currently disabled
-#install src/scripts/package/rpm/jserv.init      $RPM_BUILD_ROOT/etc/rc.d/init.d/jserv
-#install src/scripts/package/rpm/jserv.sh        $RPM_BUILD_ROOT/etc/profile.d
-#install src/scripts/package/rpm/jserv.logrotate $RPM_BUILD_ROOT/etc/logrotate.d/jserv
 
 ### GNU JSDK-classes
 install classpathx_servlet-%{jsdkversion}/servlet-2.0.jar $RPM_BUILD_ROOT%{_javadir}
