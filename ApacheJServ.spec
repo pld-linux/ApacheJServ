@@ -10,7 +10,7 @@ Summary:	Servlet engine with support for the leading web server
 Summary(pl):	Silnik serwletów ze wsparciem dla wiod±cego serwera WWW
 Name:		ApacheJServ
 Version:	1.1.2
-Release:	0.27
+Release:	0.33
 License:	freely distributable & usable (JServ), LGPL (JSDK)
 Group:		Networking/Daemons
 Source0:	http://java.apache.org/jserv/dist/%{name}-%{version}.tar.gz
@@ -33,8 +33,6 @@ Requires:	/usr/bin/gij
 %else
 BuildRequires:	jdk
 %endif
-Requires(post,preun):	rc-scripts
-Requires:	apache1 >= 1.3.33-2
 Provides:	jserv
 Provides:	jsdk20
 BuildRoot:	%{tmpdir}/%{name}-%{version}-root-%(id -u -n)
@@ -65,6 +63,15 @@ ten zawiera implementacjê Java Servlet API Suna w wersji 2.0 napisan±
 przez Paula Siegmanna (na licencji LGPL)
 <http://www.euronet.nl/~pauls/java/servlet/>.
 
+%package -n apache1-mod_jserv
+Summary:	JServ module for Apache
+Group:		Networking/Daemons
+Requires:	%{name} = %{version}-%{release}
+Requires:	apache1 >= 1.3.33-2
+
+%description -n apache1-mod_jserv
+Apache JServ apache module.
+
 %package init
 Summary:	ApacheJServ initscript
 Summary(pl):	Skrypt startowy ApacheJServ
@@ -74,6 +81,7 @@ Requires(pre):  /bin/id
 Requires(pre):  /usr/bin/getgid
 Requires(pre):  /usr/sbin/useradd
 Requires(pre):  /usr/sbin/groupadd
+Requires(post,preun):	rc-scripts
 
 %description init
 JServ initscript for standalone mode.
@@ -166,7 +174,7 @@ install %{SOURCE3} $RPM_BUILD_ROOT/etc/rc.d/init.d/jserv
 	-C src/java \
 	DESTDIR=$RPM_BUILD_ROOT
 
-echo "default - change on install `date`" > $RPM_BUILD_ROOT%{_sysconfdir}/jserv.secret.key
+echo "default - change on install" > $RPM_BUILD_ROOT%{_sysconfdir}/jserv.secret.key
 
 # currently disabled
 #install src/scripts/package/rpm/jserv.init      $RPM_BUILD_ROOT/etc/rc.d/init.d/jserv
@@ -190,13 +198,14 @@ if [ "$1" = 1 ]; then
 	dd if=/dev/urandom bs=1 count=42 2>/dev/null \
 		| (md5sum 2>/dev/null || cat) > %{_sysconfdir}/jserv.secret.key
 fi
+
+%post -n apache1-mod_jserv
 %service apache restart
 
-%postun
+%postun -n apache1-mod_jserv
 if [ "$1" = "0" ]; then
 	%service -q apache restart
 fi
-
 
 %pre init
 %groupadd -P %{name}-init -g 154 jserv
@@ -223,15 +232,9 @@ fi
 %defattr(644,root,root,755)
 %doc LICENSE README
 %dir %{_sysconfdir}
-%attr(640,root,root) %config(noreplace) %verify(not md5 mtime size) %{httpdconf}/conf.d/*_mod_jserv.conf
-%attr(640,root,http) %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/jserv.properties
-%attr(640,root,http) %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/zone.properties
-%attr(640,root,http) %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/jserv.secret.key
-#%attr(640,root,root) %config(noreplace) %verify(not size mtime md5) /etc/logrotate.d/jserv
-#%config /etc/profile.d/jserv.sh
-
-%attr(755,root,root) %{_pkglibdir}/mod_jserv.so
-
+%attr(640,root,root) %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/jserv.properties
+%attr(640,root,root) %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/zone.properties
+%attr(640,root,root) %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/jserv.secret.key
 %{_javadir}/ApacheJServ.jar
 %{_javadir}/servlet-2.0.jar
 
@@ -243,6 +246,10 @@ fi
 %{servletdir}/IsItWorking.class
 %endif
 
+%files -n apache1-mod_jserv
+%defattr(644,root,root,755)
+%attr(640,root,root) %config(noreplace) %verify(not md5 mtime size) %{httpdconf}/conf.d/*_mod_jserv.conf
+%attr(755,root,root) %{_pkglibdir}/mod_jserv.so
 %attr(770,root,http) %dir %{logdir}
 
 %files init
