@@ -65,12 +65,16 @@ przez Paula Siegmanna (na licencji LGPL)
 
 %package -n apache1-mod_jserv
 Summary:	JServ module for Apache
+Summary(pl):	Modu³ JServ dla Apache'a
 Group:		Networking/Daemons
 Requires:	%{name} = %{version}-%{release}
 Requires:	apache1 >= 1.3.33-2
 
 %description -n apache1-mod_jserv
-Apache JServ apache module.
+JServ module for Apache.
+
+%description -n apache1-mod_jserv -l pl
+Modu³ JServ dla Apache'a.
 
 %package init
 Summary:	ApacheJServ initscript
