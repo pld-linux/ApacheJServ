@@ -1,10 +1,10 @@
 #!/bin/sh
 #
-# jserv	jserv short service description
+# jserv	standalone ApacheJServ process daemon
 #
 # chkconfig:	345 80 20
 #
-# description:	jserv long service description
+# description:	jserv ApacheJServ standalone process
 #
 # $Id$
 
@@ -60,25 +60,12 @@ case "$1" in
 		msg_not_running jserv
 	fi
 	;;
-  restart)
+  restart|reload)
 	$0 stop
 	$0 start
 	exit $?
 	;;
-  reload)
-	if [ -f /var/lock/subsys/jserv ]; then
-		msg_reloading jserv
-		killproc jserv -HUP
-		RETVAL=$?
-	else
-		msg_not_running jserv >&2
-		RETVAL=7
-	fi
-	;;
   force-reload)
-	# if program allows reloading without stopping
-	$0 reload
-
 	# or if it doesn't
 	$0 restart
 
