@@ -10,7 +10,7 @@ Summary:	Servlet engine with support for the leading web server
 Summary(pl):	Silnik serwletów ze wsparciem dla wiod±cego serwera WWW
 Name:		ApacheJServ
 Version:	1.1.2
-Release:	0.52
+Release:	0.56
 License:	freely distributable & usable (JServ), LGPL (JSDK)
 Group:		Networking/Daemons
 Source0:	http://java.apache.org/jserv/dist/%{name}-%{version}.tar.gz
@@ -88,14 +88,25 @@ Requires(pre):  /usr/bin/getgid
 Requires(pre):  /usr/sbin/useradd
 Requires(pre):  /usr/sbin/groupadd
 Requires(post,preun):	rc-scripts
-Requires(triggerin):	sed >= 4.0
 Requires:	rc-scripts
+Provides:	%{name}(config)
+Obsoletes:	%{name}(config)
 
 %description init
-JServ initscript for standalone mode.
+JServ initscript for standalone (manual) mode.
 
 %description init -l pl
 Skrypt startowy JServ dla trybu samodzielnego.
+
+%package auto
+Summary:	ApacheJServ initscript
+Group:		Development/Languages/Java
+Requires:	%{name} = %{version}-%{release}
+Provides:	%{name}(config)
+Obsoletes:	%{name}(config)
+
+%description auto
+Configuration for automatic JServ startup from Apache.
 
 %package doc
 Summary:	ApacheJServ documentation
@@ -170,6 +181,8 @@ rm -rf $RPM_BUILD_ROOT
 install -d $RPM_BUILD_ROOT{/etc/rc.d/init.d,%{httpdconf}/conf.d,%{_javadir}}
 
 install %{SOURCE2} $RPM_BUILD_ROOT%{httpdconf}/conf.d/81_mod_jserv.conf
+sed -e '/^[	 ]*ApJServManual[	 ]\+/s/off/on/i' %{SOURCE2} \
+	> $RPM_BUILD_ROOT%{httpdconf}/conf.d/82_mod_jserv.conf
 install %{SOURCE3} $RPM_BUILD_ROOT/etc/rc.d/init.d/jserv
 
 %{__make} install \
@@ -204,11 +217,13 @@ fi
 
 %post -n apache1-mod_jserv
 %service apache restart
+exit 0
 
 %postun -n apache1-mod_jserv
 if [ "$1" = "0" ]; then
 	%service -q apache restart
 fi
+exit 0
 
 %pre init
 %groupadd -P %{name}-init -g 154 jserv
@@ -231,26 +246,10 @@ if [ "$1" = "0" ]; then
 	%groupremove jserv
 fi
 
-%triggerin init -- apache1-mod_jserv
-if [ "$2" != 1 ]; then
-	exit 0
-fi
-# so, we have initscript and apache module, it means we turn off
-# automatic mode and switch to manual mode, and change jserv config
-# groups to jserv user
-MODE=$(awk '/^[\t ]*ApJServManual (on|off)/{print $2}' %{httpdconf}/conf.d/??_mod_jserv.conf)
-if [ "$MODE" = off ]; then
-	chgrp jserv %{_sysconfdir}/{{jserv,zone}.properties,jserv.secret.key}
-	sed -i -e '/^[	 ]*ApJServManual[	 ]\+/s/off/on/i' %{httpdconf}/conf.d/??_mod_jserv.conf
-fi
-
 %files
 %defattr(644,root,root,755)
 %doc LICENSE README
 %dir %{_sysconfdir}
-%attr(640,root,root) %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/jserv.properties
-%attr(640,root,root) %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/zone.properties
-%attr(640,root,root) %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/jserv.secret.key
 %{_javadir}/ApacheJServ.jar
 %{_javadir}/servlet-2.0.jar
 
@@ -264,13 +263,23 @@ fi
 
 %files -n apache1-mod_jserv
 %defattr(644,root,root,755)
-%attr(640,root,root) %config(noreplace) %verify(not md5 mtime size) %{httpdconf}/conf.d/*_mod_jserv.conf
 %attr(755,root,root) %{_pkglibdir}/mod_jserv.so
 %attr(770,root,http) %dir %{logdir}
 
 %files init
 %defattr(644,root,root,755)
+%attr(640,root,root) %config(noreplace) %verify(not md5 mtime size) %{httpdconf}/conf.d/82_mod_jserv.conf
+%attr(640,root,jserv) %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/jserv.properties
+%attr(640,root,jserv) %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/zone.properties
+%attr(640,root,jserv) %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/jserv.secret.key
 %attr(754,root,root) /etc/rc.d/init.d/jserv
+
+%files auto
+%defattr(644,root,root,755)
+%attr(640,root,root) %config(noreplace) %verify(not md5 mtime size) %{httpdconf}/conf.d/81_mod_jserv.conf
+%attr(640,root,http) %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/jserv.properties
+%attr(640,root,http) %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/zone.properties
+%attr(640,root,http) %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/jserv.secret.key
 
 %files doc
 %defattr(644,root,root,755)
