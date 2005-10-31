@@ -96,10 +96,11 @@ Obsoletes:	%{name}(config)
 JServ initscript for standalone (manual) mode.
 
 %description init -l pl
-Skrypt startowy JServ dla trybu samodzielnego.
+Skrypt startowy JServ dla trybu samodzielnego (rêcznego).
 
 %package auto
 Summary:	ApacheJServ initscript
+Summary(pl):	Skrypt startowy ApacheJServ
 Group:		Development/Languages/Java
 Requires:	%{name} = %{version}-%{release}
 Provides:	%{name}(config)
@@ -107,6 +108,9 @@ Obsoletes:	%{name}(config)
 
 %description auto
 Configuration for automatic JServ startup from Apache.
+
+%description auto -l pl
+Konfiguracja do automatycznego uruchamiania JServa z Apache'a.
 
 %package doc
 Summary:	ApacheJServ documentation
