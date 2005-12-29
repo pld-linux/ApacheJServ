@@ -6,11 +6,12 @@
 #
 %define		apxs		/usr/sbin/apxs1
 %define		jsdkversion	20000924
+%define		mod_name	jserv
 Summary:	Servlet engine with support for the leading web server
 Summary(pl):	Silnik serwletów ze wsparciem dla wiod±cego serwera WWW
 Name:		ApacheJServ
 Version:	1.1.2
-Release:	0.56
+Release:	0.68
 License:	freely distributable & usable (JServ), LGPL (JSDK)
 Group:		Networking/Daemons
 Source0:	http://java.apache.org/jserv/dist/%{name}-%{version}.tar.gz
@@ -24,19 +25,32 @@ Patch1:		%{name}-ac.patch
 Patch2:		%{name}-jre-env.patch
 URL:		http://java.apache.org/
 BuildRequires:	apache1-devel >= 1.3.9-8
+BuildRequires:	autoconf
+BuildRequires:	automake
+BuildRequires:	gettext-devel
 BuildRequires:	rpmbuild(macros) >= 1.228
 BuildRequires:	sed >= 4.0
 %if %{with gcj}
-BuildRequires:	gcc-java
 BuildRequires:	fastjar
+BuildRequires:	gcc-java
 BuildRequires:	jdkgcj
 Requires:	/usr/bin/gij
 %else
 BuildRequires:	java-sun
 Requires:	java-sun-jre
 %endif
-Provides:	jserv
+Requires(post,preun):	rc-scripts
+Requires(pre):	/bin/id
+Requires(pre):	/usr/bin/getgid
+Requires(pre):	/usr/sbin/groupadd
+Requires(pre):	/usr/sbin/useradd
+Requires:	%{name} = %{version}-%{release}
+Requires:	rc-scripts
+Provides:	group(jserv)
 Provides:	jsdk20
+Provides:	jserv
+Provides:	user(jserv)
+Obsoletes:	ApacheJServ-init
 BuildRoot:	%{tmpdir}/%{name}-%{version}-root-%(id -u -n)
 
 %define		_pkglibdir	%(%{apxs} -q LIBEXECDIR 2>/dev/null)
@@ -69,48 +83,14 @@ przez Paula Siegmanna (na licencji LGPL)
 Summary:	JServ module for Apache
 Summary(pl):	Modu³ JServ dla Apache'a
 Group:		Networking/Daemons
-Requires:	%{name} = %{version}-%{release}
 Requires:	apache1 >= 1.3.33-2
+Obsoletes:	ApacheJServ-auto
 
 %description -n apache1-mod_jserv
 JServ module for Apache.
 
 %description -n apache1-mod_jserv -l pl
 Modu³ JServ dla Apache'a.
-
-%package init
-Summary:	ApacheJServ initscript
-Summary(pl):	Skrypt startowy ApacheJServ
-Group:		Development/Languages/Java
-Requires:	%{name} = %{version}-%{release}
-Requires(pre):  /bin/id
-Requires(pre):  /usr/bin/getgid
-Requires(pre):  /usr/sbin/useradd
-Requires(pre):  /usr/sbin/groupadd
-Requires(post,preun):	rc-scripts
-Requires:	rc-scripts
-Provides:	%{name}(config)
-Obsoletes:	%{name}(config)
-
-%description init
-JServ initscript for standalone (manual) mode.
-
-%description init -l pl
-Skrypt startowy JServ dla trybu samodzielnego (rêcznego).
-
-%package auto
-Summary:	ApacheJServ initscript
-Summary(pl):	Skrypt startowy ApacheJServ
-Group:		Development/Languages/Java
-Requires:	%{name} = %{version}-%{release}
-Provides:	%{name}(config)
-Obsoletes:	%{name}(config)
-
-%description auto
-Configuration for automatic JServ startup from Apache.
-
-%description auto -l pl
-Konfiguracja do automatycznego uruchamiania JServa z Apache'a.
 
 %package doc
 Summary:	ApacheJServ documentation
@@ -184,9 +164,7 @@ CFLAGS="$(%{apxs} -q CFLAGS) %{rpmcflags}"
 rm -rf $RPM_BUILD_ROOT
 install -d $RPM_BUILD_ROOT{/etc/rc.d/init.d,%{httpdconf}/conf.d,%{_javadir}}
 
-install %{SOURCE2} $RPM_BUILD_ROOT%{httpdconf}/conf.d/81_mod_jserv.conf
-sed -e '/^[	 ]*ApJServManual[	 ]\+/s/off/on/i' %{SOURCE2} \
-	> $RPM_BUILD_ROOT%{httpdconf}/conf.d/82_mod_jserv.conf
+install %{SOURCE2} $RPM_BUILD_ROOT%{httpdconf}/conf.d/80_mod_jserv.conf
 install %{SOURCE3} $RPM_BUILD_ROOT/etc/rc.d/init.d/jserv
 
 %{__make} install \
@@ -198,7 +176,8 @@ install %{SOURCE3} $RPM_BUILD_ROOT/etc/rc.d/init.d/jserv
 	-C src/java \
 	DESTDIR=$RPM_BUILD_ROOT
 
-echo "default - change on install" > $RPM_BUILD_ROOT%{_sysconfdir}/jserv.secret.key
+> $RPM_BUILD_ROOT%{httpdconf}/jserv.secret.key
+> $RPM_BUILD_ROOT%{_sysconfdir}/jserv.secret.key
 
 ### GNU JSDK-classes
 install classpathx_servlet-%{jsdkversion}/servlet-2.0.jar $RPM_BUILD_ROOT%{_javadir}
@@ -208,35 +187,29 @@ rm -rf jsdk-doc/{COPYING.LIB,CVS} jsdk-doc/apidoc/CVS
 
 # duplicate
 rm -f $RPM_BUILD_ROOT%{_sysconfdir}/jserv.conf
-rm -rf $RPM_BUILD_ROOT/usr/docs
+rm -rf $RPM_BUILD_ROOT%{_prefix}/docs
 
 %clean
 rm -rf $RPM_BUILD_ROOT
 
+%pre
+%groupadd -g 154 jserv
+%useradd -u 154 -g jserv -d /etc/jserv -c "JServ User" jserv
+
 %post
-if [ "$1" = 1 ]; then
-	dd if=/dev/urandom bs=1 count=42 2>/dev/null \
-		| (md5sum 2>/dev/null || cat) > %{_sysconfdir}/jserv.secret.key
+set -x
+if [ ! -s %{_sysconfdir}/jserv.secret.key ]; then
+	if [ -s %{httpdconf}/jserv.secret.key ]; then
+		cat %{httpdconf}/jserv.secret.key > %{_sysconfdir}/jserv.secret.key
+	else
+		dd if=/dev/urandom bs=1 count=42 2>/dev/null \
+			| (md5sum 2>/dev/null || cat) > %{_sysconfdir}/jserv.secret.key
+	fi
 fi
-
-%post -n apache1-mod_jserv
-%service apache restart
-exit 0
-
-%postun -n apache1-mod_jserv
-if [ "$1" = "0" ]; then
-	%service -q apache restart
-fi
-exit 0
-
-%pre init
-%groupadd -P %{name}-init -g 154 jserv
-%useradd -P %{name}-init -u 154 -g jserv -d /etc/jserv -c "JServ User" jserv
-
-%post init
 /sbin/chkconfig --add jserv
+%service jserv restart "Apache JServ Daemon"
 
-%preun init
+%preun
 if [ "$1" = 0 ]; then
 	if [ -f /var/lock/subsys/jserv ]; then
 		/etc/rc.d/init.d/jserv stop 1>&2
@@ -244,16 +217,37 @@ if [ "$1" = 0 ]; then
 	/sbin/chkconfig --del jserv
 fi
 
-%postun init
+%postun
 if [ "$1" = "0" ]; then
 	%userremove jserv
 	%groupremove jserv
+fi
+
+%post -n apache1-mod_jserv
+set -x
+if [ ! -s %{httpdconf}/jserv.secret.key ]; then
+	if [ -s %{_sysconfdir}/jserv.secret.key ]; then
+		cat %{_sysconfdir}/jserv.secret.key > %{httpdconf}/jserv.secret.key
+	else
+		dd if=/dev/urandom bs=1 count=42 2>/dev/null \
+			| (md5sum 2>/dev/null || cat) > %{httpdconf}/jserv.secret.key
+	fi
+fi
+%service -q apache restart
+
+%postun -n apache1-mod_jserv
+if [ "$1" = "0" ]; then
+	%service -q apache restart
 fi
 
 %files
 %defattr(644,root,root,755)
 %doc LICENSE README
 %dir %{_sysconfdir}
+%attr(640,root,jserv) %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/jserv.secret.key
+%attr(640,root,jserv) %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/jserv.properties
+%attr(640,root,jserv) %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/zone.properties
+%attr(754,root,root) /etc/rc.d/init.d/jserv
 %{_javadir}/ApacheJServ.jar
 %{_javadir}/servlet-2.0.jar
 
@@ -268,22 +262,9 @@ fi
 %files -n apache1-mod_jserv
 %defattr(644,root,root,755)
 %attr(755,root,root) %{_pkglibdir}/mod_jserv.so
+%attr(640,root,root) %config(noreplace) %verify(not md5 mtime size) %{httpdconf}/conf.d/80_mod_jserv.conf
+%attr(640,root,http) %config(noreplace) %verify(not md5 mtime size) %{httpdconf}/jserv.secret.key
 %attr(770,root,http) %dir %{logdir}
-
-%files init
-%defattr(644,root,root,755)
-%attr(640,root,root) %config(noreplace) %verify(not md5 mtime size) %{httpdconf}/conf.d/82_mod_jserv.conf
-%attr(640,root,jserv) %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/jserv.properties
-%attr(640,root,jserv) %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/zone.properties
-%attr(640,root,jserv) %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/jserv.secret.key
-%attr(754,root,root) /etc/rc.d/init.d/jserv
-
-%files auto
-%defattr(644,root,root,755)
-%attr(640,root,root) %config(noreplace) %verify(not md5 mtime size) %{httpdconf}/conf.d/81_mod_jserv.conf
-%attr(640,root,http) %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/jserv.properties
-%attr(640,root,http) %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/zone.properties
-%attr(640,root,http) %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/jserv.secret.key
 
 %files doc
 %defattr(644,root,root,755)
