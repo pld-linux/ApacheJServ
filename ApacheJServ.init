@@ -30,7 +30,7 @@ else
 	exit 0
 fi
 
-checkconfig() {
+getconfig() {
 	JRE=$(awk -F= '/^wrapper.bin=/{print $2}' $JSERV_PROPERTIES) || JRE=/usr/bin/java
 	CLASSPATH=$(awk -F= '/^wrapper\.classpath/{print $2}' $JSERV_PROPERTIES | tr '\n' ':')
 	ENV=$(awk -F= '/^wrapper.env=/{printf("%s=%s\n", $2, $3)}' $JSERV_PROPERTIES)
@@ -42,10 +42,22 @@ case "$1" in
 	# Check if the service is already running?
 	if [ ! -f /var/lock/subsys/jserv ]; then
 		msg_starting jserv
-		checkconfig || exit 1
-		daemon --fork --user jserv env -i $ENV CLASSPATH="$CLASSPATH" $JRE $JSERV_CLASS $JSERV_PROPERTIES
+		getconfig || exit 1
+		start-stop-daemon --start \
+			--exec /usr/bin/env \
+			--pidfile /var/run/jserv.pid \
+			--make-pidfile \
+			--chuid jserv \
+			--background \
+			-- \
+			-i $ENV CLASSPATH="$CLASSPATH" $JRE $JSERV_CLASS $JSERV_PROPERTIES
 		RETVAL=$?
-		[ $RETVAL -eq 0 ] && touch /var/lock/subsys/jserv
+		if [ $RETVAL -eq 0 ]; then
+			touch /var/lock/subsys/jserv
+			ok
+		else
+			fail
+		fi
 	else
 		msg_already_running jserv
 	fi
@@ -54,7 +66,7 @@ case "$1" in
 	if [ -f /var/lock/subsys/jserv ]; then
 		# Stop daemons.
 		msg_stopping jserv
-		killproc jserv
+		killproc --pidfile jserv.pid jserv
 		rm -f /var/lock/subsys/jserv
 	else
 		msg_not_running jserv
