@@ -23,7 +23,7 @@ JSERV_CLASS=org.apache.jserv.JServ
 # Check that networking is up.
 if is_yes "${NETWORKING}"; then
 	if [ ! -f /var/lock/subsys/network ]; then
-		msg_network_down jserv
+		msg_network_down ApacheJServ
 		exit 1
 	fi
 else
@@ -41,7 +41,7 @@ case "$1" in
   start)
 	# Check if the service is already running?
 	if [ ! -f /var/lock/subsys/jserv ]; then
-		msg_starting jserv
+		msg_starting ApacheJServ
 		getconfig || exit 1
 		start-stop-daemon --start \
 			--exec /usr/bin/env \
@@ -59,17 +59,17 @@ case "$1" in
 			fail
 		fi
 	else
-		msg_already_running jserv
+		msg_already_running ApacheJServ
 	fi
 	;;
   stop)
 	if [ -f /var/lock/subsys/jserv ]; then
 		# Stop daemons.
-		msg_stopping jserv
+		msg_stopping ApacheJServ
 		killproc --pidfile jserv.pid jserv
 		rm -f /var/lock/subsys/jserv
 	else
-		msg_not_running jserv
+		msg_not_running ApacheJServ
 	fi
 	;;
   restart|reload)
@@ -84,7 +84,7 @@ case "$1" in
 	exit $?
 	;;
   status)
-	status jserv
+	status jserv java
 	RETVAL=$?
 	;;
   *)
