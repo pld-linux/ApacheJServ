@@ -11,7 +11,7 @@ Summary:	Servlet engine with support for the leading web server
 Summary(pl):	Silnik serwletów ze wsparciem dla wiod±cego serwera WWW
 Name:		ApacheJServ
 Version:	1.1.2
-Release:	0.68
+Release:	0.79
 License:	freely distributable & usable (JServ), LGPL (JSDK)
 Group:		Networking/Daemons
 Source0:	http://java.apache.org/jserv/dist/%{name}-%{version}.tar.gz
@@ -45,7 +45,7 @@ Requires(pre):	/usr/bin/getgid
 Requires(pre):	/usr/sbin/groupadd
 Requires(pre):	/usr/sbin/useradd
 Requires:	%{name} = %{version}-%{release}
-Requires:	rc-scripts
+Requires:	rc-scripts >= 0.4.0.19
 Provides:	group(jserv)
 Provides:	jsdk20
 Provides:	jserv
@@ -57,7 +57,6 @@ BuildRoot:	%{tmpdir}/%{name}-%{version}-root-%(id -u -n)
 %define		httpdconf	%(%{apxs} -q SYSCONFDIR 2>/dev/null)
 %define		_sysconfdir	/etc/jserv
 %define		logdir		/var/log/jserv
-%define		servletdir	%{_datadir}/jserv/servlets
 %define		_noautocompressdoc  package-list
 
 %description
@@ -150,7 +149,7 @@ CFLAGS="$(%{apxs} -q CFLAGS) %{rpmcflags}"
 	%{!?debug:--disable-debugging} \
 	--with-apxs=%{apxs} \
 	--with-logdir=%{logdir} \
-	--with-servlets=%{servletdir} \
+	--with-servlets=%{_datadir}/jserv/servlets \
 	%{!?with_gcj:GCJ=javac GCJFLAGS= CLASSPATH=`pwd` JAVAC_OPT="-source 1.4"} \
     %{!?with_gcj:--with-javac=%{_bindir}/javac --with-java=%{_bindir}/java --with-jdk-home=%{_libdir}/java} \
     %{?with_gcj:--with-javac=%{_bindir}/gcj --with-jar=%{_bindir}/fastjar} \
@@ -179,6 +178,8 @@ install %{SOURCE3} $RPM_BUILD_ROOT/etc/rc.d/init.d/jserv
 > $RPM_BUILD_ROOT%{httpdconf}/jserv.secret.key
 > $RPM_BUILD_ROOT%{_sysconfdir}/jserv.secret.key
 
+install -d $RPM_BUILD_ROOT%{_datadir}/jserv/servlets
+
 ### GNU JSDK-classes
 install classpathx_servlet-%{jsdkversion}/servlet-2.0.jar $RPM_BUILD_ROOT%{_javadir}
 
@@ -197,7 +198,6 @@ rm -rf $RPM_BUILD_ROOT
 %useradd -u 154 -g jserv -d /etc/jserv -c "JServ User" jserv
 
 %post
-set -x
 if [ ! -s %{_sysconfdir}/jserv.secret.key ]; then
 	if [ -s %{httpdconf}/jserv.secret.key ]; then
 		cat %{httpdconf}/jserv.secret.key > %{_sysconfdir}/jserv.secret.key
@@ -224,7 +224,6 @@ if [ "$1" = "0" ]; then
 fi
 
 %post -n apache1-mod_jserv
-set -x
 if [ ! -s %{httpdconf}/jserv.secret.key ]; then
 	if [ -s %{_sysconfdir}/jserv.secret.key ]; then
 		cat %{_sysconfdir}/jserv.secret.key > %{httpdconf}/jserv.secret.key
@@ -243,28 +242,29 @@ fi
 %files
 %defattr(644,root,root,755)
 %doc LICENSE README
-%dir %{_sysconfdir}
+%dir %attr(750,root,jserv) %{_sysconfdir}
 %attr(640,root,jserv) %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/jserv.secret.key
 %attr(640,root,jserv) %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/jserv.properties
 %attr(640,root,jserv) %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/zone.properties
 %attr(754,root,root) /etc/rc.d/init.d/jserv
 %{_javadir}/ApacheJServ.jar
 %{_javadir}/servlet-2.0.jar
+%dir %{_datadir}/jserv
+%dir %attr(750,root,jserv) %{_datadir}/jserv/servlets
 
 %if 0
-%dir %{servletdir}
-%{servletdir}/Hello.java
-%{servletdir}/Hello.class
-%{servletdir}/IsItWorking.java
-%{servletdir}/IsItWorking.class
+%{_datadir}/jserv/servlets/Hello.java
+%{_datadir}/jserv/servlets/Hello.class
+%{_datadir}/jserv/servlets/IsItWorking.java
+%{_datadir}/jserv/servlets/IsItWorking.class
 %endif
+%attr(770,root,jserv) %dir %{logdir}
 
 %files -n apache1-mod_jserv
 %defattr(644,root,root,755)
 %attr(755,root,root) %{_pkglibdir}/mod_jserv.so
 %attr(640,root,root) %config(noreplace) %verify(not md5 mtime size) %{httpdconf}/conf.d/80_mod_jserv.conf
 %attr(640,root,http) %config(noreplace) %verify(not md5 mtime size) %{httpdconf}/jserv.secret.key
-%attr(770,root,http) %dir %{logdir}
 
 %files doc
 %defattr(644,root,root,755)
