@@ -1,0 +1,11 @@
+--- ./conf/jserv.properties.in~	2005-12-29 13:51:48.000000000 +0200
++++ ./conf/jserv.properties.in	2006-01-05 22:21:27.000000000 +0200
+@@ -164,7 +164,7 @@
+ # Default: false
+ # WARNING: disable this in a production environment since may give reserved
+ # information to untrusted users.
+-security.selfservlet=true
++security.selfservlet=false
+ 
+ # Set the maximum number of socket connections Apache JServ may handle 
+ # simultaneously. Make sure your operating environment has enough file
