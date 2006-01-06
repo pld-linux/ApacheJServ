@@ -11,7 +11,7 @@ Summary:	Servlet engine with support for the leading web server
 Summary(pl):	Silnik serwletów ze wsparciem dla wiod±cego serwera WWW
 Name:		ApacheJServ
 Version:	1.1.2
-Release:	0.79
+Release:	0.82
 License:	freely distributable & usable (JServ), LGPL (JSDK)
 Group:		Networking/Daemons
 Source0:	http://java.apache.org/jserv/dist/%{name}-%{version}.tar.gz
@@ -20,15 +20,17 @@ Source1:	http://www.euronet.nl/~pauls/java/servlet/download/classpathx_servlet-%
 # Source1-md5:	a81feddb91b1358f9aaed94e83eddb54
 Source2:	%{name}.conf
 Source3:	%{name}.init
+Source4:	%{name}.sysconfig
 Patch0:		%{name}-enable-secret.patch
 Patch1:		%{name}-ac.patch
 Patch2:		%{name}-jre-env.patch
+Patch3:		%{name}-config.patch
 URL:		http://java.apache.org/
 BuildRequires:	apache1-devel >= 1.3.9-8
 BuildRequires:	autoconf
 BuildRequires:	automake
 BuildRequires:	gettext-devel
-BuildRequires:	rpmbuild(macros) >= 1.228
+BuildRequires:	rpmbuild(macros) >= 1.268
 BuildRequires:	sed >= 4.0
 %if %{with gcj}
 BuildRequires:	fastjar
@@ -51,6 +53,7 @@ Provides:	jsdk20
 Provides:	jserv
 Provides:	user(jserv)
 Obsoletes:	ApacheJServ-init
+Obsoletes:	jserv
 BuildRoot:	%{tmpdir}/%{name}-%{version}-root-%(id -u -n)
 
 %define		_pkglibdir	%(%{apxs} -q LIBEXECDIR 2>/dev/null)
@@ -107,6 +110,7 @@ Dokumentacja do ApacheJServ.
 %patch0 -p0
 %patch1 -p0
 %patch2 -p1
+%patch3 -p1
 
 sed -i -e '
 	s|@JSDK_CLASSES@|%{_javadir}/servlet-2.0.jar|g
@@ -161,10 +165,11 @@ CFLAGS="$(%{apxs} -q CFLAGS) %{rpmcflags}"
 
 %install
 rm -rf $RPM_BUILD_ROOT
-install -d $RPM_BUILD_ROOT{/etc/rc.d/init.d,%{httpdconf}/conf.d,%{_javadir}}
+install -d $RPM_BUILD_ROOT{/etc/{sysconfig,rc.d/init.d},%{httpdconf}/conf.d,%{_javadir}}
 
 install %{SOURCE2} $RPM_BUILD_ROOT%{httpdconf}/conf.d/80_mod_jserv.conf
 install %{SOURCE3} $RPM_BUILD_ROOT/etc/rc.d/init.d/jserv
+install %{SOURCE4} $RPM_BUILD_ROOT/etc/sysconfig/jserv
 
 %{__make} install \
 	DESTDIR=$RPM_BUILD_ROOT
@@ -211,9 +216,7 @@ fi
 
 %preun
 if [ "$1" = 0 ]; then
-	if [ -f /var/lock/subsys/jserv ]; then
-		/etc/rc.d/init.d/jserv stop 1>&2
-	fi
+	%service jserv stop
 	/sbin/chkconfig --del jserv
 fi
 
@@ -247,6 +250,7 @@ fi
 %attr(640,root,jserv) %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/jserv.properties
 %attr(640,root,jserv) %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/zone.properties
 %attr(754,root,root) /etc/rc.d/init.d/jserv
+%config(noreplace) %verify(not md5 mtime size) /etc/sysconfig/jserv
 %{_javadir}/ApacheJServ.jar
 %{_javadir}/servlet-2.0.jar
 %dir %{_datadir}/jserv
