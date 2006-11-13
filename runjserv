@@ -1,0 +1,7 @@
+#!/bin/sh
+if [ "$LOGFILE" ]; then
+	exec 1>>$LOGFILE
+	exec 2>&1
+	unset LOGFILE
+fi
+exec "$@"
