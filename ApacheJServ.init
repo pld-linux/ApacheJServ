@@ -43,14 +43,14 @@ case "$1" in
 	if [ ! -f /var/lock/subsys/jserv ]; then
 		msg_starting ApacheJServ
 		getconfig || exit 1
-		start-stop-daemon --start \
+		/usr/bin/setsid start-stop-daemon --start \
 			--exec /usr/bin/env \
 			--pidfile /var/run/jserv.pid \
 			--make-pidfile \
 			--chuid jserv \
 			--background \
 			-- \
-			-i $ENV CLASSPATH="$CLASSPATH" $JRE $JSERV_CLASS $JSERV_PROPERTIES
+			-i $ENV PATH="$PATH" CLASSPATH="$CLASSPATH" LOGFILE=/var/log/jserv/stdout.log /usr/sbin/runjserv $JRE $JSERV_CLASS $JSERV_PROPERTIES
 		RETVAL=$?
 		if [ $RETVAL -eq 0 ]; then
 			touch /var/lock/subsys/jserv
