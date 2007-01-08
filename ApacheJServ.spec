@@ -11,7 +11,7 @@ Summary:	Servlet engine with support for the leading web server
 Summary(pl):	Silnik serwletów ze wsparciem dla wiod±cego serwera WWW
 Name:		ApacheJServ
 Version:	1.1.2
-Release:	1
+Release:	1.1
 License:	freely distributable & usable (JServ), LGPL (JSDK)
 Group:		Networking/Daemons
 Source0:	http://java.apache.org/jserv/dist/%{name}-%{version}.tar.gz
@@ -21,6 +21,7 @@ Source1:	http://www.euronet.nl/~pauls/java/servlet/download/classpathx_servlet-%
 Source2:	%{name}.conf
 Source3:	%{name}.init
 Source4:	%{name}.sysconfig
+Source5:	runjserv
 Patch0:		%{name}-enable-secret.patch
 Patch1:		%{name}-ac.patch
 Patch2:		%{name}-jre-env.patch
@@ -124,6 +125,8 @@ sed -i -e '/^SUBDIRS/s,java,,' src/Makefile.am
 sed -i -e '/^SUBDIRS/s,example,,' Makefile.am
 
 %build
+export JAVA_HOME="%{java_home}"
+
 if [ ! -f _autotools.done.1 ]; then
 	%{__gettextize}
 	%{__libtoolize}
@@ -165,11 +168,12 @@ CFLAGS="$(%{apxs} -q CFLAGS) %{rpmcflags}"
 
 %install
 rm -rf $RPM_BUILD_ROOT
-install -d $RPM_BUILD_ROOT{/etc/{sysconfig,rc.d/init.d},%{httpdconf}/conf.d,%{_javadir}}
+install -d $RPM_BUILD_ROOT{/etc/{sysconfig,rc.d/init.d},%{httpdconf}/conf.d,%{_javadir},%{_sbindir}}
 
 install %{SOURCE2} $RPM_BUILD_ROOT%{httpdconf}/conf.d/80_mod_jserv.conf
 install %{SOURCE3} $RPM_BUILD_ROOT/etc/rc.d/init.d/jserv
 install %{SOURCE4} $RPM_BUILD_ROOT/etc/sysconfig/jserv
+install %{SOURCE5} $RPM_BUILD_ROOT%{_sbindir}
 
 %{__make} install \
 	DESTDIR=$RPM_BUILD_ROOT
