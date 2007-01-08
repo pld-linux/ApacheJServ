@@ -152,15 +152,17 @@ fi
 
 ### JSERV
 CFLAGS="$(%{apxs} -q CFLAGS) %{rpmcflags}"
+dir=$(pwd)
 %configure \
 	%{!?debug:--disable-debugging} \
 	--with-apxs=%{apxs} \
 	--with-logdir=%{logdir} \
 	--with-servlets=%{_datadir}/jserv/servlets \
-	%{!?with_gcj:GCJ=javac GCJFLAGS= CLASSPATH=`pwd` JAVAC_OPT="-source 1.4"} \
-    %{!?with_gcj:--with-javac=%{_bindir}/javac --with-java=%{_bindir}/java --with-jdk-home=%{_libdir}/java} \
-    %{?with_gcj:--with-javac=%{_bindir}/gcj --with-jar=%{_bindir}/fastjar} \
-	--with-JSDK=`pwd`/classpathx_servlet-%{jsdkversion}/servlet-2.0.jar
+	--with-java-platform=1.4 \
+	--with-JSDK=$dir/classpathx_servlet-%{jsdkversion}/servlet-2.0.jar \
+	%{!?with_gcj:GCJ=javac GCJFLAGS= CLASSPATH=$dir JAVAC_OPT="-source 1.4"} \
+	%{!?with_gcj:--with-javac=%{javac} --with-java=%{java} --with-jdk-home=$JAVA_HOME} \
+	%{?with_gcj:--with-javac=%{_bindir}/gcj --with-jar=%{_bindir}/fastjar} \
 
 %{__make} %{!?with_gcj:OBJEXT=class JAVAC_OPT='-source 1.4'} \
 	-C src/java
@@ -254,6 +256,7 @@ fi
 %attr(640,root,jserv) %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/jserv.properties
 %attr(640,root,jserv) %config(noreplace) %verify(not md5 mtime size) %{_sysconfdir}/zone.properties
 %attr(754,root,root) /etc/rc.d/init.d/jserv
+%attr(755,root,root) %{_sbindir}/runjserv
 %config(noreplace) %verify(not md5 mtime size) /etc/sysconfig/jserv
 %{_javadir}/ApacheJServ.jar
 %{_javadir}/servlet-2.0.jar
