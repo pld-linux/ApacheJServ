@@ -8,7 +8,7 @@
 %define		jsdkversion	20000924
 %define		mod_name	jserv
 Summary:	Servlet engine with support for the leading web server
-Summary(pl.UTF-8):   Silnik serwletów ze wsparciem dla wiodącego serwera WWW
+Summary(pl.UTF-8):	Silnik serwletów ze wsparciem dla wiodącego serwera WWW
 Name:		ApacheJServ
 Version:	1.1.2
 Release:	3
@@ -85,7 +85,7 @@ przez Paula Siegmanna (na licencji LGPL)
 
 %package -n apache1-mod_jserv
 Summary:	JServ module for Apache
-Summary(pl.UTF-8):   Moduł JServ dla Apache'a
+Summary(pl.UTF-8):	Moduł JServ dla Apache'a
 Group:		Networking/Daemons
 Requires:	apache1 >= 1.3.33-2
 Obsoletes:	ApacheJServ-auto
@@ -98,7 +98,7 @@ Moduł JServ dla Apache'a.
 
 %package doc
 Summary:	ApacheJServ documentation
-Summary(pl.UTF-8):   Dokumentacja do ApacheJServ
+Summary(pl.UTF-8):	Dokumentacja do ApacheJServ
 Group:		Development/Languages/Java
 
 %description doc
