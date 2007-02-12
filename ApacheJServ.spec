@@ -8,7 +8,7 @@
 %define		jsdkversion	20000924
 %define		mod_name	jserv
 Summary:	Servlet engine with support for the leading web server
-Summary(pl):	Silnik serwletów ze wsparciem dla wiod±cego serwera WWW
+Summary(pl.UTF-8):   Silnik serwletÃ³w ze wsparciem dla wiodÄ…cego serwera WWW
 Name:		ApacheJServ
 Version:	1.1.2
 Release:	3
@@ -73,19 +73,19 @@ from the mod_jserv Apache module (DSO included). This package contains
 a LGPL'ed implementation of Sun's Java Servlet API version 2.0 by Paul
 Siegmann <http://www.euronet.nl/~pauls/java/servlet/>.
 
-%description -l pl
+%description -l pl.UTF-8
 Apache JServ jest silnikiem serwletowym, rozwijanym przez Java Apache
 Project <http://java.apache.org/>. Silnik serwletowy Apache JServ
-zosta³ napisany od pocz±tku do koñca w Javie; nas³uchuje wywo³añ
-serwletu wykorzystuj±c protokó³ Apache Java (AJp). Zazwyczaj wywo³ania
-te pochodz± z modu³u Apache mod_jservmodule (³±cznie z DSO). Pakiet
-ten zawiera implementacjê Java Servlet API Suna w wersji 2.0 napisan±
+zostaÅ‚ napisany od poczÄ…tku do koÅ„ca w Javie; nasÅ‚uchuje wywoÅ‚aÅ„
+serwletu wykorzystujÄ…c protokÃ³Å‚ Apache Java (AJp). Zazwyczaj wywoÅ‚ania
+te pochodzÄ… z moduÅ‚u Apache mod_jservmodule (Å‚Ä…cznie z DSO). Pakiet
+ten zawiera implementacjÄ™ Java Servlet API Suna w wersji 2.0 napisanÄ…
 przez Paula Siegmanna (na licencji LGPL)
 <http://www.euronet.nl/~pauls/java/servlet/>.
 
 %package -n apache1-mod_jserv
 Summary:	JServ module for Apache
-Summary(pl):	Modu³ JServ dla Apache'a
+Summary(pl.UTF-8):   ModuÅ‚ JServ dla Apache'a
 Group:		Networking/Daemons
 Requires:	apache1 >= 1.3.33-2
 Obsoletes:	ApacheJServ-auto
@@ -93,18 +93,18 @@ Obsoletes:	ApacheJServ-auto
 %description -n apache1-mod_jserv
 JServ module for Apache.
 
-%description -n apache1-mod_jserv -l pl
-Modu³ JServ dla Apache'a.
+%description -n apache1-mod_jserv -l pl.UTF-8
+ModuÅ‚ JServ dla Apache'a.
 
 %package doc
 Summary:	ApacheJServ documentation
-Summary(pl):	Dokumentacja do ApacheJServ
+Summary(pl.UTF-8):   Dokumentacja do ApacheJServ
 Group:		Development/Languages/Java
 
 %description doc
 ApacheJserv documentation.
 
-%description doc -l pl
+%description doc -l pl.UTF-8
 Dokumentacja do ApacheJServ.
 
 %prep
