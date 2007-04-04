@@ -87,7 +87,7 @@ przez Paula Siegmanna (na licencji LGPL)
 Summary:	JServ module for Apache
 Summary(pl.UTF-8):	Moduł JServ dla Apache'a
 Group:		Networking/Daemons
-Requires:	apache1 >= 1.3.33-2
+Requires:	apache1-base >= 1.3.33-2
 Obsoletes:	ApacheJServ-auto
 
 %description -n apache1-mod_jserv
