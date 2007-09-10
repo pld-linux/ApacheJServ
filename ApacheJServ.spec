@@ -11,7 +11,7 @@ Summary:	Servlet engine with support for the leading web server
 Summary(pl.UTF-8):	Silnik serwletów ze wsparciem dla wiodącego serwera WWW
 Name:		ApacheJServ
 Version:	1.1.2
-Release:	3
+Release:	4
 License:	freely distributable & usable (JServ), LGPL (JSDK)
 Group:		Networking/Daemons
 Source0:	http://java.apache.org/jserv/dist/%{name}-%{version}.tar.gz
@@ -116,6 +116,7 @@ Dokumentacja do ApacheJServ.
 
 sed -i -e '
 	s|@JSDK_CLASSES@|%{_javadir}/servlet-2.0.jar|g
+	s|@JAVA@|%{_bindir}/java|g
 ' conf/jserv.properties.in
 
 # do not load module in provided jserv.conf; we do this in httpd.conf
