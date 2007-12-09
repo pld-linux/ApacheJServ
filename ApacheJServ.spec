@@ -34,6 +34,7 @@ Requires(pre):	/bin/id
 Requires(pre):	/usr/bin/getgid
 Requires(pre):	/usr/sbin/groupadd
 Requires(pre):	/usr/sbin/useradd
+Requires:	jpackage-utils
 Requires:	jre
 Requires:	rc-scripts >= 0.4.0.19
 Requires:	servlet = 2.0
