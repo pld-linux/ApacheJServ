@@ -48,7 +48,6 @@ BuildRoot:	%{tmpdir}/%{name}-%{version}-root-%(id -u -n)
 %define		_pkglibdir	%(%{apxs} -q LIBEXECDIR 2>/dev/null)
 %define		httpdconf	%(%{apxs} -q SYSCONFDIR 2>/dev/null)
 %define		_sysconfdir	/etc/jserv
-%define		_noautocompressdoc  package-list
 
 %description
 Apache JServ is a servlet engine, developed by the Java Apache Project
