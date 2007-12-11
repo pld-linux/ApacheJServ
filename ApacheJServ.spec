@@ -84,17 +84,18 @@ Moduł JServ dla Apache'a.
 %patch3 -p1
 
 # servlet-2.0 is the highest version the jserv code compiles with
-sed -i -e "
-	s|@JSDK_CLASSES@|$(find-jar servlet-2.0)|g
+servlet_jar=$(find-jar servlet-2.0)
+%{__sed} -i -e "
+	s|@JSDK_CLASSES@|$servlet_jar)|g
 	s|@JAVA@|%java|g
 " conf/jserv.properties.in
 
 # do not load module in provided jserv.conf; we do this in httpd.conf
-sed -i -e 's|@LOAD_OR_NOT@|#|g' conf/jserv.conf.in
+%{__sed} -i -e 's|@LOAD_OR_NOT@|#|g' conf/jserv.conf.in
 
 # we don't want gcj related deps
-sed -i -e '/^SUBDIRS/s,java,,' src/Makefile.am
-sed -i -e '/^SUBDIRS/s,example,,' Makefile.am
+%{__sed} -i -e '/^SUBDIRS/s,java,,' src/Makefile.am
+%{__sed} -i -e '/^SUBDIRS/s,example,,' Makefile.am
 
 %build
 export JAVA_HOME="%{java_home}"
