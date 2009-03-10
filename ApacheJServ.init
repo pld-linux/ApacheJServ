@@ -4,7 +4,7 @@
 #
 # chkconfig:	345 80 20
 #
-# description:	jserv ApacheJServ standalone process
+# description:	jserv Apache JServ standalone process
 #
 # $Id$
 
@@ -23,7 +23,7 @@ JSERV_CLASS=org.apache.jserv.JServ
 # Check that networking is up.
 if is_yes "${NETWORKING}"; then
 	if [ ! -f /var/lock/subsys/network ]; then
-		msg_network_down ApacheJServ
+		msg_network_down "Apache JServ"
 		exit 1
 	fi
 else
@@ -46,7 +46,7 @@ getconfig() {
 start() {
 	# Check if the service is already running?
 	if [ ! -f /var/lock/subsys/jserv ]; then
-		msg_starting ApacheJServ
+		msg_starting "Apache JServ"
 		getconfig || exit 1
 		/usr/bin/setsid start-stop-daemon --start \
 			--exec /usr/bin/env \
@@ -64,18 +64,28 @@ start() {
 			fail
 		fi
 	else
-		msg_already_running ApacheJServ
+		msg_already_running "Apache JServ"
 	fi
 }
 
 stop() {
 	if [ -f /var/lock/subsys/jserv ]; then
 		# Stop daemons.
-		msg_stopping ApacheJServ
+		msg_stopping "Apache JServ"
 		killproc --pidfile jserv.pid jserv
 		rm -f /var/lock/subsys/jserv
 	else
-		msg_not_running ApacheJServ
+		msg_not_running "Apache JServ"
+	fi
+}
+
+condrestart() {
+	if [ -f /var/lock/subsys/jserv ]; then
+		stop
+		start
+	else
+		msg_not_running "Apache JServ"
+		RETVAL=$1
 	fi
 }
 
@@ -91,12 +101,18 @@ case "$1" in
 	stop
 	start
 	;;
+  try-restart)
+	condrestart 0
+	;;
+  force-reload)
+	condrestart 7
+	;;
   status)
 	status jserv java
 	RETVAL=$?
 	;;
   *)
-	msg_usage "$0 {start|stop|restart|status}"
+	msg_usage "$0 {start|stop|restart|try-restart|force-reload|status}"
 	exit 3
 esac
 
