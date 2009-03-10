@@ -31,9 +31,16 @@ else
 fi
 
 getconfig() {
-	JRE=$(awk -F= '/^wrapper.bin=/{print $2}' $JSERV_PROPERTIES) || JRE=/usr/bin/java
-	CLASSPATH=$(awk -F= '/^wrapper\.classpath/{print $2}' $JSERV_PROPERTIES | tr '\n' ':')
-	ENV=$(awk -F= '/^wrapper.env=/{printf("%s=%s\n", $2, $3)}' $JSERV_PROPERTIES)
+	# set JAVACMD from jpackage-utils if available
+	if [ -f /usr/share/java-utils/java-functions ]; then
+		. /usr/share/java-utils/java-functions
+		set_javacmd
+	fi
+
+	JAVACMD=${JAVACMD:-$(awk -F= '$1 == "wrapper.bin" {print $2}' $JSERV_PROPERTIES)}
+	JAVACMD=${JAVACMD:-/usr/bin/java}
+	CLASSPATH=$(awk -F= -vORS=':' '$1 == "wrapper.classpath" {print $2}' $JSERV_PROPERTIES)
+	ENV=$(awk -F= '$1 == "wrapper.env" {printf("%s=%s\n", $2, $3)}' $JSERV_PROPERTIES)
 }
 
 start() {
@@ -48,7 +55,7 @@ start() {
 			--chuid jserv \
 			--background \
 			-- \
-			-i $ENV PATH="$PATH" CLASSPATH="$CLASSPATH" LOGFILE=/var/log/jserv/stdout.log /usr/sbin/runjserv $JRE $JSERV_CLASS $JSERV_PROPERTIES
+			-i $ENV PATH="$PATH" CLASSPATH="$CLASSPATH" LOGFILE=/var/log/jserv/stdout.log /usr/sbin/runjserv $JAVACMD $JSERV_CLASS $JSERV_PROPERTIES
 		RETVAL=$?
 		if [ $RETVAL -eq 0 ]; then
 			touch /var/lock/subsys/jserv
