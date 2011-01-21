@@ -55,7 +55,7 @@ start() {
 			--chuid jserv \
 			--background \
 			-- \
-			-i $ENV PATH="$PATH" CLASSPATH="$CLASSPATH" LOGFILE=/var/log/jserv/stdout.log /usr/sbin/runjserv $JAVACMD $JSERV_CLASS $JSERV_PROPERTIES
+			-i $ENV PATH="$PATH" CLASSPATH="$CLASSPATH" LOGFILE=/var/log/jserv/stdout.log /usr/sbin/runjserv $JAVACMD $JVM_OPTS $JSERV_CLASS $JSERV_PROPERTIES
 		RETVAL=$?
 		if [ $RETVAL -eq 0 ]; then
 			touch /var/lock/subsys/jserv

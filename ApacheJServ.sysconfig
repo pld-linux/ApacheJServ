@@ -1,5 +1,8 @@
 # $Id$
 # Customized settings for ApacheJServ
 
+# Specify jvm opts, like max memory
+#JVM_OPTS="-Xmx32M"
+
 # Skip automatic service restarts invoked from rpm installs.
 #RPM_SKIP_AUTO_RESTART=yes
