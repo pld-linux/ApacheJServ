@@ -22,7 +22,7 @@ URL:		http://archive.apache.org/dist/java/jserv/
 BuildRequires:	apache1-devel >= 1.3.9-8
 BuildRequires:	autoconf
 BuildRequires:	automake
-BuildRequires:	gettext-devel
+BuildRequires:	gettext-tools
 BuildRequires:	jdk
 BuildRequires:	jpackage-utils
 BuildRequires:	rpm-javaprov
