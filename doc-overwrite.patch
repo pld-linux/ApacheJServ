@@ -1,5 +1,5 @@
---- /home/users/glen/rpm/BUILD/x86_64-linux/ApacheJServ-1.1.2/docs/Makefile.am~	2019-02-18 11:14:18.000000000 +0200
-+++ /home/users/glen/rpm/BUILD/x86_64-linux/ApacheJServ-1.1.2/docs/Makefile.am	2019-02-18 11:14:22.603006830 +0200
+--- ApacheJServ-1.1.2/docs/Makefile.am~	2019-02-18 11:14:18.000000000 +0200
++++ ApacheJServ-1.1.2/docs/Makefile.am	2019-02-18 11:14:22.603006830 +0200
 @@ -7,10 +7,16 @@
  		protocol/*.html	\
  		future/*.html
