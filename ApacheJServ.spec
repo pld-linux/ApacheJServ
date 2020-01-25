@@ -1,6 +1,5 @@
 %define		apxs		/usr/sbin/apxs1
 %define		mod_name	jserv
-%include	/usr/lib/rpm/macros.java
 Summary:	Servlet engine with support for the leading web server
 Summary(pl.UTF-8):	Silnik serwletów ze wsparciem dla wiodącego serwera WWW
 Name:		ApacheJServ
